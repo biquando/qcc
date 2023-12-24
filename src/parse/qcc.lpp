@@ -4,7 +4,7 @@
 #include <string>
 #include "ast.hpp"
 #include "qcc.y.hpp"
-#include "driver.hpp"
+#include "parse/driver.hpp"
 
 #define _BIN_OP(op) do { return yy::parser::make_BINARY_OP(op); } while (0)
 #define _UN_OP(op)  do { return yy::parser::make_UNARY_OP(op);  } while (0)

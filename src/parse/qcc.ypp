@@ -14,7 +14,7 @@
 
 %param {Driver &drv}
 %code {
-    #include "driver.hpp"
+    #include "parse/driver.hpp"
 }
 
 %token <BuiltinType> BUILTIN_TYPE

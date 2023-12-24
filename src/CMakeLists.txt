@@ -20,7 +20,6 @@ add_executable(qcc "${QCC_SOURCES}"
     "${FLEX_QCCLexer_OUTPUTS}" "${BISON_QCCParser_OUTPUTS}")
 
 target_include_directories(qcc PUBLIC .)
-target_include_directories(qcc PUBLIC ./parse)
 target_include_directories(qcc PUBLIC "${PARSE_OUTPUT}")
 
 foreach(SRC IN LISTS QCC_SOURCES)
