@@ -12,7 +12,8 @@ file(MAKE_DIRECTORY "${PARSE_OUTPUT}")
 
 flex_target(QCCLexer parse/qcc.lpp "${PARSE_OUTPUT}/qcc.l.cpp")
 bison_target(QCCParser parse/qcc.ypp "${PARSE_OUTPUT}/qcc.y.cpp"
-             DEFINES_FILE "${PARSE_OUTPUT}/qcc.y.hpp")
+             DEFINES_FILE "${PARSE_OUTPUT}/qcc.y.hpp"
+             COMPILE_FLAGS "-Wcounterexamples")
 add_flex_bison_dependency(QCCLexer QCCParser)
 
 

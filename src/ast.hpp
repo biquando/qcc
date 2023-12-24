@@ -111,11 +111,11 @@ public:
 
 class LiteralNode {
 public:
-    union {
-        int i;
-        char c;
-    } val;
+    LiteralType type;
+    int i;
+    char c;
 
-    LiteralNode(LiteralType type, long val);
+    LiteralNode(int i);
+    LiteralNode(char c);
 };
 

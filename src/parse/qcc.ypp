@@ -18,11 +18,12 @@
 }
 
 %token <BuiltinType> BUILTIN_TYPE
-%token <BuiltinOperator> BINARY_OP
-%token <BuiltinOperator> UNARY_OP
+%left <BuiltinOperator> BINARY_OP
+%right <BuiltinOperator> UNARY_OP
 %token <std::string> IDENTIFIER
 %token <int> INT_LITERAL
 %token <char> CHAR_LITERAL
+%left '('
 
 %type <FnDefNode *> fnDef
 %type <TypeNode *> type
@@ -104,8 +105,8 @@ expr    : literal { $$ = new ExprNode($1); }
         | '(' expr ')' { $$ = $2; }
         ;
 
-literal : INT_LITERAL { $$ = new LiteralNode(LiteralType::Int, $1); }
-        | CHAR_LITERAL { $$ = new LiteralNode(LiteralType::Char, $1); }
+literal : INT_LITERAL { $$ = new LiteralNode($1); }
+        | CHAR_LITERAL { $$ = new LiteralNode($1); }
         ;
 
 %%

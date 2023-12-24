@@ -85,13 +85,10 @@ ExprNode::ExprNode(BuiltinOperator unaryOperator, ExprNode *opr)
 
 /* SECTION: LiteralNode */
 
-LiteralNode::LiteralNode(LiteralType type, long val) {
-    switch (type) {
-        case LiteralType::Int:
-            this->val.i = val & ((int)-1);
-            break;
-        case LiteralType::Char:
-            this->val.c = val & ((char)-1);
-            break;
-    }
-}
+LiteralNode::LiteralNode(int i)
+        : type(LiteralType::Int),
+          i(i) {}
+
+LiteralNode::LiteralNode(char c)
+        : type(LiteralType::Char),
+          c(c) {}

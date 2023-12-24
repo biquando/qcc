@@ -29,7 +29,7 @@ char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char); }
 {IDENTIFIER} { return yy::parser::make_IDENTIFIER(yytext); }
 
  /* Literals */
-{INT} { return yy::parser::make_INT_LITERAL(atoi(yytext)); }
+{INT} { return yy::parser::make_INT_LITERAL(strtol(yytext, NULL, 0)); }
 {CHAR} { return yy::parser::make_CHAR_LITERAL(yytext[1]); }
 {ESCAPED_CHAR} { return yy::parser::make_CHAR_LITERAL(_escape(yytext[2])); }
 
