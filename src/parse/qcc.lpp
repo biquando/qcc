@@ -1,0 +1,90 @@
+%{
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include "ast.hpp"
+#include "qcc.y.hpp"
+#include "driver.hpp"
+
+#define _BIN_OP(op) do { return yy::parser::make_BINARY_OP(op); } while (0)
+#define _UN_OP(op)  do { return yy::parser::make_UNARY_OP(op);  } while (0)
+
+static char _escape(char c);
+%}
+
+%option noyywrap
+
+IDENTIFIER [a-zA-Z_][a-zA-Z_0-9]*
+INT -?(([0-9]+)|(0x[0-9a-f]+))
+CHAR '[^\\]'
+ESCAPED_CHAR '\\.'
+
+%%
+
+ /* Built-in types */
+int   { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Int);  }
+char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char); }
+
+ /* Identifiers */
+{IDENTIFIER} { return yy::parser::make_IDENTIFIER(yytext); }
+
+ /* Literals */
+{INT} { return yy::parser::make_INT_LITERAL(atoi(yytext)); }
+{CHAR} { return yy::parser::make_CHAR_LITERAL(yytext[1]); }
+{ESCAPED_CHAR} { return yy::parser::make_CHAR_LITERAL(_escape(yytext[2])); }
+
+ /* Operators */
+"+"  { _BIN_OP(BuiltinOperator::Plus);   }
+"-"  { _BIN_OP(BuiltinOperator::Minus);  }
+"*"  { _BIN_OP(BuiltinOperator::Star);   }
+"/"  { _BIN_OP(BuiltinOperator::Fslash); }
+"==" { _BIN_OP(BuiltinOperator::Eq);     }
+"!=" { _BIN_OP(BuiltinOperator::Ne);     }
+"<"  { _BIN_OP(BuiltinOperator::Lt);     }
+">"  { _BIN_OP(BuiltinOperator::Gt);     }
+"<=" { _BIN_OP(BuiltinOperator::Le);     }
+">=" { _BIN_OP(BuiltinOperator::Ge);     }
+"!"  {  _UN_OP(BuiltinOperator::Not);    }
+
+ /* Other characters */
+[ \t\r\n]+ {}
+. { return yytext[0]; }
+
+%%
+
+void Driver::scan_begin() {
+    yyin = stdin;
+}
+
+void Driver::scan_end() {
+    fclose(yyin);
+}
+
+static char _escape(char c) {
+    switch(c) {
+        case '\\':
+            return '\\';
+        case 'n':
+            return '\n';
+        case 't':
+            return '\t';
+        case 'r':
+            return '\r';
+        case '\'':
+            return '\'';
+        case '\"':
+            return '\"';
+        case 'b':
+            return '\b';
+        case 'f':
+            return '\f';
+        case 'v':
+            return '\v';
+        case 'a':
+            return '\a';
+        case '0':
+            return '\0';
+        default:
+            return c;
+    }
+}
