@@ -4,6 +4,7 @@
 #include <vector>
 
 enum class BuiltinType {
+    Void,
     Int,
     Char,
 };

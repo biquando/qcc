@@ -22,6 +22,7 @@ ESCAPED_CHAR '\\.'
 %%
 
  /* Built-in types */
+void  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Void);  }
 int   { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Int);  }
 char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char); }
 
