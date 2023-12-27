@@ -1,6 +1,4 @@
 {
-    "editor.tabSize": 4,
-    "editor.insertSpaces": true,
     "todohighlight.keywords": [
         {"text": "SECTION:", "color": "red", "backgroundColor": "transparent"},
     ],
