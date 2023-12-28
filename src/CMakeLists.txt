@@ -1,6 +1,7 @@
 set(QCC_SOURCES
     qcc.cpp
     ast.cpp
+    util.cpp
     parse/driver.cpp)
 
 

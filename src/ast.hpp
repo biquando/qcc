@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -52,6 +53,7 @@ public:
 
 class TypeNode {
 public:
+    bool isCustom;
     BuiltinType builtinType;
     std::string customType;
     TypeNode(BuiltinType builtinType);
@@ -71,7 +73,7 @@ public:
         Declaration, Initialization, Assignment, FnCall
     } kind;
 
-    TypeNode *type;             // Declaration
+    TypeNode *type;             // Declaration/Initialization
     std::string identifier;     // Declaration/Initialization
     ExprNode *lexpr, *expr;     // Initialization/Assignment
     FnCallNode *fnCall;         // FnCall
@@ -120,3 +122,15 @@ public:
     LiteralNode(char c);
 };
 
+/* SECTION: Print declarations */
+std::ostream &operator<<(std::ostream &os, BuiltinType &type);
+std::ostream &operator<<(std::ostream &os, BuiltinOperator &op);
+std::ostream &operator<<(std::ostream &os, LiteralType &type);
+
+std::ostream &operator<<(std::ostream &os, FnDefNode &node);
+std::ostream &operator<<(std::ostream &os, TypeNode &node);
+std::ostream &operator<<(std::ostream &os, ParamNode &node);
+std::ostream &operator<<(std::ostream &os, StatementNode &node);
+std::ostream &operator<<(std::ostream &os, FnCallNode &node);
+std::ostream &operator<<(std::ostream &os, ExprNode &node);
+std::ostream &operator<<(std::ostream &os, LiteralNode &node);

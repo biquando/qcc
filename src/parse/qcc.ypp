@@ -68,7 +68,7 @@ type
 
 paramList
     : param { $$ = new std::vector<ParamNode *>(); $$->push_back($1); }
-    | paramList ',' param { $1->insert($1->begin(), $3); $$ = $1; }
+    | paramList ',' param { $1->push_back($3); $$ = $1; }
     ;
 
 param
@@ -110,17 +110,9 @@ fnCall
 
 argList
     : expr { $$ = new std::vector<ExprNode *>(); $$->push_back($1); }
-    | argList ',' expr { $1->insert($1->begin(), $3); $$ = $1; }
+    | argList ',' expr { $1->push_back($3); $$ = $1; }
     ;
 
-/* expr
-    : literal { $$ = new ExprNode($1); }
-    | IDENTIFIER { $$ = new ExprNode($1); }
-    | fnCall { $$ = new ExprNode($1); }
-    | expr binaryOp expr { $$ = new ExprNode($2, $1, $3); }
-    | unaryOp expr { $$ = new ExprNode($1, $2); }
-    | '(' expr ')' { $$ = $2; }
-    ; */
 expr
     : literal { $$ = new ExprNode($1); }
     | IDENTIFIER { $$ = new ExprNode($1); }
