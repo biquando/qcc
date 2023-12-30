@@ -2,10 +2,4 @@
     "todohighlight.keywords": [
         {"text": "SECTION:", "color": "red", "backgroundColor": "transparent", "overviewRulerColor": "red"},
     ],
-    "files.associations": {
-        "*.excalidraw": "json",
-        "*.excalidrawlib": "json",
-        "*.h": "c",
-        "vector": "cpp"
-    },
 }
