@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "CompileState.hpp"
 
 enum class BuiltinType {
     Void,
@@ -49,6 +50,8 @@ public:
               std::string identifier,
               std::vector<ParamNode *> paramList,
               std::vector<StatementNode *> block);
+
+    void emit(CompileState &cs);
 };
 
 class TypeNode {

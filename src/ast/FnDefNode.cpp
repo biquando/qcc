@@ -1,5 +1,6 @@
 #include "ast.hpp"
 #include "util.hpp"
+#include "CompileState.hpp"
 
 FnDefNode::FnDefNode(TypeNode *returnType,
               std::string identifier,
@@ -33,4 +34,12 @@ std::ostream &operator<<(std::ostream &os, FnDefNode &node) {
         ios << *statementNode << '\n';
     }
     return os << '}';
+}
+
+void FnDefNode::emit(CompileState &cs) {
+    IndentedStream ios(cs.os, cs.indent);
+    ios << ".globl _" << identifier << '\n';
+    cs.os << "_" << identifier << ":" << '\n';
+    ios << "ret" << '\n';
+    cs.os << '\n';
 }

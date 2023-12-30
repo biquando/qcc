@@ -1,6 +1,7 @@
 set(QCC_SOURCES
     qcc.cpp
     util.cpp
+    CompileState.cpp
     ast/ast.cpp
     ast/FnDefNode.cpp
     ast/TypeNode.cpp
