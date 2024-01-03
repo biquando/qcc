@@ -1,4 +1,4 @@
-#include "ast.hpp"
+#include "ast/ast.hpp"
 #include "util.hpp"
 
 StatementNode::StatementNode(TypeNode *type, std::string identifier)
@@ -12,9 +12,9 @@ StatementNode::StatementNode(TypeNode *type, std::string identifier, ExprNode *e
           identifier(identifier),
           expr(expr) {}
 
-StatementNode::StatementNode(ExprNode *lexpr, ExprNode *rexpr)
+StatementNode::StatementNode(std::string identifier, ExprNode *rexpr)
         : kind(Assignment),
-          lexpr(lexpr),
+          identifier(identifier),
           expr(rexpr) {}
 
 StatementNode::StatementNode(FnCallNode *fnCall)
@@ -35,8 +35,7 @@ std::ostream &operator<<(std::ostream &os, StatementNode &node) {
             ios << '\n' << *(node.expr);
             break;
         case StatementNode::Assignment:
-            os << "Assignment):";
-            ios << '\n' << *(node.lexpr);
+            os << "Assignment): " << node.identifier;
             ios << '\n' << *(node.expr);
             break;
         case StatementNode::FnCall:

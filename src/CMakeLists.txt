@@ -2,6 +2,7 @@ set(QCC_SOURCES
     qcc.cpp
     util.cpp
     CompileState.cpp
+    StackFrame.cpp
     ast/ast.cpp
     ast/FnDefNode.cpp
     ast/TypeNode.cpp
@@ -30,7 +31,6 @@ add_executable(qcc "${QCC_SOURCES}"
     "${FLEX_QCCLexer_OUTPUTS}" "${BISON_QCCParser_OUTPUTS}")
 
 target_include_directories(qcc PUBLIC .)
-target_include_directories(qcc PUBLIC ./ast)
 target_include_directories(qcc PUBLIC "${PARSE_OUTPUT}")
 
 foreach(SRC IN LISTS QCC_SOURCES)

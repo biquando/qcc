@@ -1,4 +1,4 @@
-#include "ast.hpp"
+#include "ast/ast.hpp"
 #include "util.hpp"
 
 ParamNode::ParamNode(TypeNode *type, std::string identifier)

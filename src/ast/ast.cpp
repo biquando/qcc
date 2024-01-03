@@ -1,4 +1,4 @@
-#include "ast.hpp"
+#include "ast/ast.hpp"
 #include "util.hpp"
 
 std::ostream &operator<<(std::ostream &os, BuiltinType &type) {

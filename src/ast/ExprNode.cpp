@@ -1,4 +1,4 @@
-#include "ast.hpp"
+#include "ast/ast.hpp"
 #include "util.hpp"
 
 ExprNode::ExprNode(LiteralNode *literal)
@@ -23,6 +23,7 @@ ExprNode::ExprNode(BuiltinOperator unaryOperator, ExprNode *opr)
         : kind(UnaryOp),
           builtinOperator(unaryOperator),
           opr(opr) {}
+
 
 std::ostream &operator<<(std::ostream &os, ExprNode &node) {
     IndentedStream ios(os);

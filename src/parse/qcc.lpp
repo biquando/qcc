@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include "ast.hpp"
+#include "ast/ast.hpp"
 #include "qcc.y.hpp"
 #include "parse/driver.hpp"
 

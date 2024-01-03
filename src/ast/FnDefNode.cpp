@@ -1,4 +1,4 @@
-#include "ast.hpp"
+#include "ast/ast.hpp"
 #include "util.hpp"
 #include "CompileState.hpp"
 
@@ -39,7 +39,47 @@ std::ostream &operator<<(std::ostream &os, FnDefNode &node) {
 void FnDefNode::emit(CompileState &cs) {
     IndentedStream ios(cs.os, cs.indent);
     ios << ".globl _" << identifier << '\n';
-    cs.os << "_" << identifier << ":" << '\n';
-    ios << "ret" << '\n';
+    cs.os << "_" << identifier << ":\n";
+
+
+    cs.pushFrame(16);
+    StackFrame *sf = cs.getTopFrame();
+    bool containsFnCalls = false;
+
+    std::string statementsOutput = "";
+    for (auto *sNode : block) {
+        if (sNode->kind == StatementNode::FnCall) {
+            containsFnCalls = true;
+            continue; // TODO:
+        }
+
+        if (sNode->kind == StatementNode::Declaration
+         || sNode->kind == StatementNode::Initialization) {
+            sf->addVariable(sNode->type, sNode->identifier);
+        }
+
+        // assuming not fncall
+        if (sNode->kind == StatementNode::Initialization
+         || sNode->kind == StatementNode::Assignment) {
+            StackFrame::Reservation *var = sf->getVariable(sNode->identifier);
+            statementsOutput += var->emitFromExprNode(sf, sNode->expr);
+        }
+    }
+    containsFnCalls |= sf->containsFnCalls;
+
+    if (containsFnCalls || sf->maxStackPos > 16) { // TODO: make this better
+        ios << "sub sp, sp, #" << sf->maxStackPos << '\n';
+        ios << "stp fp, lr, [fp, #-16]\n";
+    }
+    ios << statementsOutput;
+    if (containsFnCalls || sf->maxStackPos > 16) {
+        ios << "ldp fp, lr, [fp, #-16]\n";
+        ios << "add sp, sp, #" << sf->maxStackPos << '\n';
+    }
+
+    cs.popFrame();
+
+
+    ios << "ret\n";
     cs.os << '\n';
 }

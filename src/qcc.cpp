@@ -1,7 +1,7 @@
 #include <iostream>
 #include "parse/driver.hpp"
 #include "util.hpp"
-#include "ast.hpp"
+#include "ast/ast.hpp"
 #include "CompileState.hpp"
 
 int main() {
