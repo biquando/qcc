@@ -61,8 +61,8 @@ void FnDefNode::emit(CompileState &cs) {
         // assuming not fncall
         if (sNode->kind == StatementNode::Initialization
          || sNode->kind == StatementNode::Assignment) {
-            StackFrame::Reservation *var = sf->getVariable(sNode->identifier);
-            statementsOutput += var->emitFromExprNode(sf, sNode->expr);
+            StackFrame::Reservation var = sf->getVariable(sNode->identifier);
+            statementsOutput += var.emitFromExprNode(sf, sNode->expr);
         }
     }
     containsFnCalls |= sf->containsFnCalls;

@@ -1,3 +1,5 @@
+#include <cstdlib>
+#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -15,7 +17,10 @@ StackFrame::Reservation::Reservation(TypeNode *type, long stackOffset)
     location.stackOffset = stackOffset;
 }
 
-std::string StackFrame::Reservation::emitCopyTo(Reservation *other) {
+StackFrame::Reservation::Reservation()
+        : valid(false) {}
+
+std::string StackFrame::Reservation::emitCopyTo(Reservation other) {
     std::string output = "";
     Register regFrom, regTo;
     Reservation *from = nullptr, *to = nullptr;
@@ -28,23 +33,23 @@ std::string StackFrame::Reservation::emitCopyTo(Reservation *other) {
         from = new Reservation(type, regFrom);
     }
 
-    if (other->kind == Reg) {
-        regTo = other->location.reg;
-        to = other;
+    if (other.kind == Reg) {
+        regTo = other.location.reg;
+        to = &other;
     } else {
         regTo = Register::x17;
-        to = new Reservation(other->type, regTo);
+        to = new Reservation(other.type, regTo);
     }
 
     if (kind == Stack) { delete from; }
-    if (other->kind == Stack) { delete to; }
+    if (other.kind == Stack) { delete to; }
 
-    if (kind == Reg && other->kind == Reg) {
-        output += "mov " + toStr(other->location.reg) + ", "
+    if (kind == Reg && other.kind == Reg) {
+        output += "mov " + toStr(other.location.reg) + ", "
                 + toStr(location.reg) + "\n";
-    } else if (kind == Reg && other->kind == Stack) {
+    } else if (kind == Reg && other.kind == Stack) {
         output += "str " + toStr(location.reg) + ", "
-                + "[fp, #-" + std::to_string(other->location.stackOffset)
+                + "[fp, #-" + std::to_string(other.location.stackOffset)
                 + "]\n";
                 // FIXME: use dynamic offsets
     } // TODO: other cases
@@ -63,26 +68,26 @@ std::string StackFrame::Reservation::emitPutValue(unsigned long val) {
         res = new Reservation(nullptr, reg); // FIXME: change nullptr
     }
 
-    output += "mov " + toStr(reg) + ", "
+    output += "mov " + toStr(reg) + ", #"
             + std::to_string(val & 0xffff) + "\n";
     if (val & 0x00000000ffff0000l) {
-        output += "movk " + toStr(reg) + ", "
+        output += "movk " + toStr(reg) + ", #"
                 + std::to_string((val >> 16) & 0xffff)
                 + ", LSL #16\n";
     }
     if (val & 0x0000ffff00000000l) {
-        output += "movk " + toStr(reg) + ", "
+        output += "movk " + toStr(reg) + ", #"
                 + std::to_string((val >> 32) & 0xffff)
                 + ", LSL #32\n";
     }
     if (val & 0xffff000000000000l) {
-        output += "movk " + toStr(reg) + ", "
+        output += "movk " + toStr(reg) + ", #"
                 + std::to_string((val >> 48) & 0xffff)
                 + ", LSL #48\n";
     }
 
     if (kind == Stack) {
-        output += res->emitCopyTo(this);
+        output += res->emitCopyTo(*this);
         delete res;
     }
     return output;
@@ -92,7 +97,7 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
                                                       ExprNode *expr) {
     std::string output = "";
     unsigned long val;
-    StackFrame::Reservation *var;
+    Reservation var;
     switch(expr->kind) {
         case ExprNode::Literal:
             switch (expr->literal->type) {
@@ -107,7 +112,12 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             break;
         case ExprNode::Identifier:
             var = sf->getVariable(expr->identifier);
-            output += var->emitCopyTo(this);
+            if (!var.valid) { // TEMP
+                std::cerr << "ERROR: Undefined variable: "
+                          << expr->identifier << '\n';
+                exit(1);
+            }
+            output += var.emitCopyTo(*this);
             break;
         case ExprNode::FnCall:
             // TODO:
@@ -118,7 +128,7 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             break;
         case ExprNode::UnaryOp:
             output += emitFromExprNode(sf, expr->opr);
-            output += sf->emitUnaryOp(expr->builtinOperator, this, this);
+            output += sf->emitUnaryOp(expr->builtinOperator, *this, *this);
     }
     return output;
 }
@@ -130,24 +140,24 @@ StackFrame::StackFrame(long initialStackPos)
           maxStackPos(initialStackPos) {}
 
 void StackFrame::addVariable(TypeNode *type, std::string identifier) {
-    Reservation *res = pushReservation(type); // TODO: prefer to push to stack
+    Reservation res = pushReservation(type); // TODO: prefer to push to stack
     variables[identifier] = res;
 }
 
-StackFrame::Reservation *StackFrame::getVariable(std::string identifier) {
+StackFrame::Reservation StackFrame::getVariable(std::string identifier) {
     return variables[identifier];
 }
 
-StackFrame::Reservation *StackFrame::pushReservation(TypeNode *type) {
+StackFrame::Reservation StackFrame::pushReservation(TypeNode *type) {
     int nReserved = reservations.size();
-    if (nReserved < 2) {
+    if (nReserved < 8) {
         reservations.emplace_back(type, (Register)(nReserved + 8));
     } else {
         stackPos += 8;
         if (stackPos > maxStackPos) { maxStackPos = stackPos; }
         reservations.emplace_back(type, stackPos);
     }
-    return &reservations.back();
+    return reservations.back();
 }
 
 void StackFrame::popReservation() {
@@ -156,26 +166,25 @@ void StackFrame::popReservation() {
 
 // TODO: Implement emitBinaryOp
 
-std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation *res,
-                                    Reservation *opr) {
+std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
+                                    Reservation opr) {
     std::string output = "";
     Register resRegister, oprRegister;
-    Reservation *resReservation = nullptr,
-                *oprReservation = nullptr;
+    Reservation resReservation, oprReservation;
 
-    if (res->kind == Reservation::Reg) {
-        resRegister = res->location.reg;
+    if (res.kind == Reservation::Reg) {
+        resRegister = res.location.reg;
     } else {
         resRegister = Register::x16; // FIXME: this register might be in use
-        resReservation = new Reservation(res->type, resRegister);
+        resReservation = Reservation(res.type, resRegister);
     }
 
-    if (opr->kind == Reservation::Reg) {
-        oprRegister = opr->location.reg;
+    if (opr.kind == Reservation::Reg) {
+        oprRegister = opr.location.reg;
     } else {
         oprRegister = Register::x17; // FIXME: this register might be in use
-        oprReservation = new Reservation(res->type, oprRegister);
-        output += opr->emitCopyTo(oprReservation);
+        oprReservation = Reservation(res.type, oprRegister);
+        output += opr.emitCopyTo(oprReservation);
     }
 
     switch (op) {
@@ -191,12 +200,10 @@ std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation *res,
             break;
     }
 
-    if (res->kind == Reservation::Stack) {
-        output += resReservation->emitCopyTo(res);
+    if (res.kind == Reservation::Stack) {
+        output += resReservation.emitCopyTo(res);
     }
 
-    if (resReservation) { delete resReservation; }
-    if (oprReservation) { delete oprReservation; }
     return output;
 }
 

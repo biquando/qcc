@@ -177,15 +177,17 @@ public:
             Reg, Stack,
         } kind;
         TypeNode *type;
+        bool valid = true;
 
         Reservation(TypeNode *type, Register reg);
         Reservation(TypeNode *type, long stackOffset);
-        std::string emitCopyTo(Reservation *other);
+        Reservation();
+        std::string emitCopyTo(Reservation other);
         std::string emitPutValue(unsigned long val);
         std::string emitFromExprNode(StackFrame *sf, ExprNode *expr);
     };
     std::vector<Reservation> reservations;
-    std::unordered_map<std::string, Reservation *> variables;
+    std::unordered_map<std::string, Reservation> variables;
 
     long stackPos;
     long maxStackPos;
@@ -194,13 +196,13 @@ public:
     StackFrame(long initialStackPos);
 
     void addVariable(TypeNode *type, std::string identifier);
-    Reservation *getVariable(std::string identifier);
-    Reservation *pushReservation(TypeNode *type);
+    Reservation getVariable(std::string identifier);
+    Reservation pushReservation(TypeNode *type);
     void popReservation();
-    std::string emitBinaryOp(BuiltinOperator op, Reservation *res,
-                             Reservation *opr1, Reservation *opr2);
-    std::string emitUnaryOp(BuiltinOperator op, Reservation *res,
-                            Reservation *opr);
+    std::string emitBinaryOp(BuiltinOperator op, Reservation res,
+                             Reservation opr1, Reservation opr2);
+    std::string emitUnaryOp(BuiltinOperator op, Reservation res,
+                            Reservation opr);
 };
 
 class CompileState {
