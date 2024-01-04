@@ -36,7 +36,7 @@
 
 %token <BuiltinType> BUILTIN_TYPE
 %token <std::string> IDENTIFIER
-%token <int> INT_LITERAL
+%token <long> INT_LITERAL
 %token <char> CHAR_LITERAL
 
 %type <FnDefNode *> fnDef

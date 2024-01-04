@@ -1,7 +1,7 @@
 #include "ast/ast.hpp"
 #include "util.hpp"
 
-LiteralNode::LiteralNode(int i)
+LiteralNode::LiteralNode(long i)
         : type(LiteralType::Int),
           i(i) {}
 

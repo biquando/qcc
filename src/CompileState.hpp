@@ -120,10 +120,10 @@ public:
 class LiteralNode {
 public:
     LiteralType type;
-    int i;
+    long i;
     char c;
 
-    LiteralNode(int i);
+    LiteralNode(long i);
     LiteralNode(char c);
 };
 

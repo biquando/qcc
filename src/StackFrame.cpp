@@ -52,36 +52,33 @@ std::string StackFrame::Reservation::emitCopyTo(Reservation other) {
 
 std::string StackFrame::Reservation::emitPutValue(unsigned long val) {
     std::string output = "";
-    Register reg;
-    Reservation *res = nullptr;
+    Reservation res;
     if (kind == Reg) {
-        reg = location.reg;
+        res = *this;
     } else {
-        reg = Register::x16; // FIXME: this register might be in use
-        res = new Reservation(nullptr, reg); // FIXME: change nullptr
+        res = Reservation(type, Register::x16);
     }
 
-    output += "mov " + toStr(reg) + ", #"
+    output += "mov " + toStr(res.location.reg) + ", #"
             + std::to_string(val & 0xffff) + "\n";
     if (val & 0x00000000ffff0000l) {
-        output += "movk " + toStr(reg) + ", #"
+        output += "movk " + toStr(res.location.reg) + ", #"
                 + std::to_string((val >> 16) & 0xffff)
                 + ", LSL #16\n";
     }
     if (val & 0x0000ffff00000000l) {
-        output += "movk " + toStr(reg) + ", #"
+        output += "movk " + toStr(res.location.reg) + ", #"
                 + std::to_string((val >> 32) & 0xffff)
                 + ", LSL #32\n";
     }
     if (val & 0xffff000000000000l) {
-        output += "movk " + toStr(reg) + ", #"
+        output += "movk " + toStr(res.location.reg) + ", #"
                 + std::to_string((val >> 48) & 0xffff)
                 + ", LSL #48\n";
     }
 
     if (kind == Stack) {
-        output += res->emitCopyTo(*this);
-        delete res;
+        output += res.emitCopyTo(*this);
     }
     return output;
 }
@@ -143,7 +140,7 @@ StackFrame::Reservation StackFrame::getVariable(std::string identifier) {
 
 StackFrame::Reservation StackFrame::pushReservation(TypeNode *type) {
     int nReserved = reservations.size();
-    if (nReserved < 2) {
+    if (nReserved < 8) {
         reservations.emplace_back(type, (Register)(nReserved + 8));
     } else {
         stackPos += 8;
