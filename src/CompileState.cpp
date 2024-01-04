@@ -6,6 +6,10 @@ std::string toStr(Register res) {
     return "x" + std::to_string((int)res);
 }
 
+std::string toStr(long l) {
+    return std::to_string(l);
+}
+
 CompileState::CompileState(std::ostream &os)
         : os(os) {}
 

@@ -22,37 +22,30 @@ StackFrame::Reservation::Reservation()
 
 std::string StackFrame::Reservation::emitCopyTo(Reservation other) {
     std::string output = "";
-    Register regFrom, regTo;
-    Reservation *from = nullptr, *to = nullptr;
-
-    if (kind == Reg) {
-        regFrom = location.reg;
-        from = this;
-    } else {
-        regFrom = Register::x16;
-        from = new Reservation(type, regFrom);
-    }
-
-    if (other.kind == Reg) {
-        regTo = other.location.reg;
-        to = &other;
-    } else {
-        regTo = Register::x17;
-        to = new Reservation(other.type, regTo);
-    }
-
-    if (kind == Stack) { delete from; }
-    if (other.kind == Stack) { delete to; }
 
     if (kind == Reg && other.kind == Reg) {
         output += "mov " + toStr(other.location.reg) + ", "
                 + toStr(location.reg) + "\n";
+
     } else if (kind == Reg && other.kind == Stack) {
         output += "str " + toStr(location.reg) + ", "
-                + "[fp, #-" + std::to_string(other.location.stackOffset)
+                + "[fp, #-" + toStr(other.location.stackOffset)
                 + "]\n";
-                // FIXME: use dynamic offsets
-    } // TODO: other cases
+
+    } else if (kind == Stack && other.kind == Reg) {
+        output += "ldr " + toStr(other.location.reg) + ", "
+                + "[fp, #-" + toStr(location.stackOffset)
+                + "]\n";
+
+    } else if (kind == Stack && other.kind == Stack) {
+        const Register TMP_REG = Register::x16;
+        output += "ldr " + toStr(TMP_REG) + ", "
+                + "[fp, #-" + toStr(location.stackOffset)
+                + "]\n";
+        output += "str " + toStr(TMP_REG) + ", "
+                + "[fp, #-" + toStr(other.location.stackOffset)
+                + "]\n";
+    }
 
     return output;
 }
@@ -150,7 +143,7 @@ StackFrame::Reservation StackFrame::getVariable(std::string identifier) {
 
 StackFrame::Reservation StackFrame::pushReservation(TypeNode *type) {
     int nReserved = reservations.size();
-    if (nReserved < 8) {
+    if (nReserved < 2) {
         reservations.emplace_back(type, (Register)(nReserved + 8));
     } else {
         stackPos += 8;

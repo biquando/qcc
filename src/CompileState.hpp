@@ -164,6 +164,7 @@ enum class Register {
     x31, sp = x31,
 };
 std::string toStr(Register res);
+std::string toStr(long l);
 std::ostream &operator<<(std::ostream &os, Register &reg);
 
 class StackFrame {
