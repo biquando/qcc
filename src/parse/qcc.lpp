@@ -1,6 +1,8 @@
 %{
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include "ast/ast.hpp"
 #include "qcc.y.hpp"
@@ -9,49 +11,81 @@
 static char _escape(char c);
 %}
 
-%option noyywrap
+%option noyywrap nounput noinput batch debug
 
 IDENTIFIER [a-zA-Z_][a-zA-Z_0-9]*
 INT (([0-9]+)|(0x[0-9a-f]+))
 CHAR '[^\\]'
-ESCAPED_CHAR '\\.'
+ESC_CHAR '\\.'
+
+%{
+#define YY_USER_ACTION loc.columns(yyleng);
+%}
 
 %%
 
+%{
+yy::location &loc = drv.location;
+loc.step();
+%}
+
  /* Built-in types */
-void  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Void);  }
-int   { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Int);  }
-char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char); }
+void  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Void, loc);  }
+int   { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Int, loc);  }
+char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char, loc); }
 
  /* Identifiers */
-{IDENTIFIER} { return yy::parser::make_IDENTIFIER(yytext); }
+{IDENTIFIER} { return yy::parser::make_IDENTIFIER(yytext, loc); }
 
  /* Literals */
-{INT} { return yy::parser::make_INT_LITERAL(strtol(yytext, NULL, 0)); }
-{CHAR} { return yy::parser::make_CHAR_LITERAL(yytext[1]); }
-{ESCAPED_CHAR} { return yy::parser::make_CHAR_LITERAL(_escape(yytext[2])); }
+{INT}      { return yy::parser::make_INT_LITERAL(strtol(yytext, NULL, 0), loc); }
+{CHAR}     { return yy::parser::make_CHAR_LITERAL(yytext[1], loc); }
+{ESC_CHAR} { return yy::parser::make_CHAR_LITERAL(_escape(yytext[2]), loc); }
 
  /* Operators */
-"+"  { return yy::parser::make_OP_PLUS  (BuiltinOperator::Plus  ); }
-"-"  { return yy::parser::make_OP_MINUS (BuiltinOperator::Minus ); }
-"*"  { return yy::parser::make_OP_STAR  (BuiltinOperator::Star  ); }
-"/"  { return yy::parser::make_OP_FSLASH(BuiltinOperator::Fslash); }
-"==" { return yy::parser::make_OP_EQ    (BuiltinOperator::Eq    ); }
-"!=" { return yy::parser::make_OP_NE    (BuiltinOperator::Ne    ); }
-"<"  { return yy::parser::make_OP_LT    (BuiltinOperator::Lt    ); }
-">"  { return yy::parser::make_OP_GT    (BuiltinOperator::Gt    ); }
-"<=" { return yy::parser::make_OP_LE    (BuiltinOperator::Le    ); }
-">=" { return yy::parser::make_OP_GE    (BuiltinOperator::Ge    ); }
-"!"  { return yy::parser::make_OP_NOT   (BuiltinOperator::Not   ); }
+"+"  { return yy::parser::make_OP_PLUS  (BuiltinOperator::Plus  , loc); }
+"-"  { return yy::parser::make_OP_MINUS (BuiltinOperator::Minus , loc); }
+"*"  { return yy::parser::make_OP_STAR  (BuiltinOperator::Star  , loc); }
+"/"  { return yy::parser::make_OP_FSLASH(BuiltinOperator::Fslash, loc); }
+"==" { return yy::parser::make_OP_EQ    (BuiltinOperator::Eq    , loc); }
+"!=" { return yy::parser::make_OP_NE    (BuiltinOperator::Ne    , loc); }
+"<"  { return yy::parser::make_OP_LT    (BuiltinOperator::Lt    , loc); }
+">"  { return yy::parser::make_OP_GT    (BuiltinOperator::Gt    , loc); }
+"<=" { return yy::parser::make_OP_LE    (BuiltinOperator::Le    , loc); }
+">=" { return yy::parser::make_OP_GE    (BuiltinOperator::Ge    , loc); }
+"!"  { return yy::parser::make_OP_NOT   (BuiltinOperator::Not   , loc); }
+
+ /* Syntactical tokens */
+"=" { return yy::parser::make_ASSIGN   (loc); }
+"," { return yy::parser::make_COMMA    (loc); }
+"{" { return yy::parser::make_LBRACE   (loc); }
+"}" { return yy::parser::make_RBRACE   (loc); }
+";" { return yy::parser::make_SEMICOLON(loc); }
+"(" { return yy::parser::make_LPAREN   (loc); }
+")" { return yy::parser::make_RPAREN   (loc); }
 
  /* Other characters */
-[ \t\r\n]+ {}
-. { return yytext[0]; }
+[ \t\r]+ { loc.step(); }
+\n+      { loc.lines(yyleng); loc.step(); }
+.        { throw yy::parser::syntax_error(
+            loc, "invalid character: " + std::string(yytext)); }
+<<EOF>>  { return yy::parser::make_YYEOF(loc); }
 
 %%
 
 void Driver::scan_begin() {
-    yyin = stdin;
+    yy_flex_debug = traceScanning;
+    if (file.empty() || file == "-") {
+        yyin = stdin;
+        return;
+    }
+
+    yyin = fopen(file.c_str(), "r");
+    if (!yyin) {
+        std::cerr << execName << ": "
+                  << file << ": " << strerror(errno) << '\n';
+        exit(EXIT_FAILURE);
+    }
 }
 
 void Driver::scan_end() {
