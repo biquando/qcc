@@ -39,6 +39,7 @@ std::ostream &operator<<(std::ostream &os, FnDefNode &node) {
 void FnDefNode::emit(CompileState &cs) {
     IndentedStream ios(cs.os, cs.indent);
     ios << ".globl _" << identifier << '\n';
+    ios << ".align 4\n";
     cs.os << "_" << identifier << ":\n";
 
 

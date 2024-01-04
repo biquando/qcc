@@ -40,9 +40,7 @@ int main(int argc, char *argv[]) {
     std::ostream &os = cs.os;
     IndentedStream ios(os, cs.indent);
 
-    ios << ".globl _main\n";
     ios << ".text\n";
-    ios << ".align 4\n\n";
 
     for (auto *fnDefNode : drv.fnDefNodes) {
         fnDefNode->emit(cs);
