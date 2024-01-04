@@ -2,4 +2,7 @@
     "todohighlight.keywords": [
         {"text": "SECTION:", "color": "red", "backgroundColor": "transparent", "overviewRulerColor": "red"},
     ],
+    "cmake.debugConfig": {
+        "args": ["-d"]
+    }
 }

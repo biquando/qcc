@@ -11,9 +11,11 @@ int main(int argc, char *argv[]) {
     Driver drv(argv[0]);
     int res = 0;
     bool parsedSomeFiles = false;
+    bool debug = false;
     for (int i = 1; i < argc; i++) {
         if (argv[i] == std::string("-p")) { drv.traceParsing = true; }
         else if (argv[i] == std::string("-s")) { drv.traceScanning = true; }
+        else if (argv[i] == std::string("-d")) { debug = true; }
         else {
             int res = drv.parse(argv[i]);
             parsedSomeFiles = true;
@@ -23,13 +25,16 @@ int main(int argc, char *argv[]) {
     if (res != 0 ) { return res; }
     if (drv.res != 0 ) { return drv.res; }
 
-    for (auto *fnDefNode : drv.fnDefNodes) {
-        std::cerr << *fnDefNode << '\n';
+    if (debug) {
+        for (auto *fnDefNode : drv.fnDefNodes) {
+            std::cerr << *fnDefNode << '\n';
+        }
     }
 
     /* SECTION: Emission */
-
-    std::cerr << "\n=== OUTPUT ===\n";
+    if (debug) {
+        std::cerr << "\n=== OUTPUT ===\n";
+    }
 
     CompileState cs(std::cout);
     std::ostream &os = cs.os;

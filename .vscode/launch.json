@@ -9,6 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/build/qcc",
+            "args": ["-d"],
             "cwd": ".",
             "externalConsole": true,
             "MIMode": "lldb",
