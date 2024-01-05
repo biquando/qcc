@@ -119,10 +119,19 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             var = sf->getVariable(expr->identifier);
             output += var.emitCopyTo(*this);
             break;
-        case ExprNode::FnCall:
-            // TODO:
+        case ExprNode::FnCall: {
+            // TODO: types, and allow more than 8 arguments
             sf->containsFnCalls = true;
+            FnCallNode *fnCall = expr->fnCall;
+            for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
+                auto res = StackFrame::Reservation(nullptr, (Register)i);
+                output += res.emitFromExprNode(sf, fnCall->argList[i]);
+            }
+            auto returnVal = StackFrame::Reservation(nullptr, Register::x0);
+            output += "bl _" + fnCall->identifier + "\n"; // FIXME: save x8-x15
+            output += returnVal.emitCopyTo(*this);
             break;
+        }
         case ExprNode::BinaryOp:
             exprRes = sf->reserveExpr(nullptr); // TODO: use actual types
             output += emitFromExprNode(sf, expr->opr1);

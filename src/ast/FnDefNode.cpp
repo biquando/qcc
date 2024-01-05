@@ -39,15 +39,24 @@ std::ostream &operator<<(std::ostream &os, FnDefNode &node) {
 void FnDefNode::emit(CompileState &cs) {
     IndentedStream ios(cs.os, cs.indent);
     ios << ".globl _" << identifier << '\n';
-    ios << ".align 4\n";
+    ios << ".p2align 2\n";
     cs.os << "_" << identifier << ":\n";
 
 
     cs.pushFrame(16);
     StackFrame *sf = cs.getTopFrame();
     bool containsFnCalls = false;
-
     std::string statementsOutput = "";
+
+    for (int i = 0; i < paramList.size() && i < 8; i++) { // TODO: support more than 8 arguments
+        ParamNode *param = paramList[i];
+        sf->addVariable(param->type, param->identifier);
+
+        StackFrame::Reservation to = sf->getVariable(param->identifier);
+        auto from = StackFrame::Reservation(param->type, (Register)i);
+        statementsOutput += from.emitCopyTo(to);
+    }
+
     for (auto *sNode : block) {
         if (sNode->kind == StatementNode::FnCall) {
             containsFnCalls = true;
@@ -74,17 +83,18 @@ void FnDefNode::emit(CompileState &cs) {
         }
     }
     containsFnCalls |= sf->containsFnCalls;
-
-    if (containsFnCalls || sf->maxStackPos > 16) { // TODO: make this better
-        ios << "sub sp, sp, #" << sf->maxStackPos << '\n';
-        ios << "stp fp, lr, [fp, #-16]\n";
+    while (sf->maxStackPos % 16 != 0) {
+        sf->maxStackPos += 1; // HACK: don't do this pls
     }
+
+    ios << "sub sp, sp, #" << sf->maxStackPos << '\n';
+    ios << "stp fp, lr, [sp, #" << sf->maxStackPos - 16 << "]\n";
+
     ios << statementsOutput;
     cs.os << "return_" << identifier << ":\n";
-    if (containsFnCalls || sf->maxStackPos > 16) {
-        ios << "ldp fp, lr, [fp, #-16]\n";
-        ios << "add sp, sp, #" << sf->maxStackPos << '\n';
-    }
+
+    ios << "ldp fp, lr, [sp, #" << sf->maxStackPos - 16 << "]\n";
+    ios << "add sp, sp, #" << sf->maxStackPos << '\n';
 
     cs.popFrame();
     ios << "ret\n";
