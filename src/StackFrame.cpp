@@ -20,7 +20,22 @@ StackFrame::Reservation::Reservation(TypeNode *type, long stackOffset)
 StackFrame::Reservation::Reservation()
         : valid(false) {}
 
+bool StackFrame::Reservation::operator==(Reservation &other) {
+    if (kind != other.kind) { return false; }
+    if (kind == Reg) {
+        return location.reg == other.location.reg;
+    }
+    if (kind == Stack) {
+        return location.stackOffset == other.location.stackOffset;
+    }
+    return false;
+}
+
 std::string StackFrame::Reservation::emitCopyTo(Reservation other) {
+    if (*this == other) {
+        return "";
+    }
+
     std::string output = "";
 
     if (kind == Reg && other.kind == Reg) {
@@ -87,7 +102,7 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
                                                       ExprNode *expr) {
     std::string output = "";
     unsigned long val;
-    Reservation var;
+    Reservation var, exprRes;
     switch(expr->kind) {
         case ExprNode::Literal:
             switch (expr->literal->type) {
@@ -109,7 +124,11 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             sf->containsFnCalls = true;
             break;
         case ExprNode::BinaryOp:
-            // TODO:
+            exprRes = sf->reserveExpr(nullptr); // TODO: use actual types
+            output += emitFromExprNode(sf, expr->opr1);
+            output += exprRes.emitFromExprNode(sf, expr->opr2);
+            output += sf->emitBinaryOp(expr->builtinOperator, *this, *this, exprRes);
+            sf->unreserveExpr();
             break;
         case ExprNode::UnaryOp:
             output += emitFromExprNode(sf, expr->opr);
@@ -188,46 +207,92 @@ void StackFrame::unreserveExpr() {
     exprReservations.pop_back();
 }
 
-// TODO: Implement emitBinaryOp
-
-std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
-                                    Reservation opr) {
+std::string StackFrame::emitBinaryOp(BuiltinOperator op, Reservation res,
+                                     Reservation opr1, Reservation opr2) {
     std::string output = "";
-    Register resRegister, oprRegister;
-    Reservation resReservation, oprReservation;
+    Reservation dst, src;
 
     if (res.kind == Reservation::Reg) {
-        resRegister = res.location.reg;
+        dst = res;
     } else {
-        resRegister = Register::x16; // FIXME: this register might be in use
-        resReservation = Reservation(res.type, resRegister);
+        dst = Reservation(res.type, Register::x16);
+    }
+    output += opr1.emitCopyTo(dst);
+
+    if (opr2.kind == Reservation::Reg) {
+        src = opr2;
+    } else {
+        src = Reservation(opr2.type, Register::x17);
+        output += opr2.emitCopyTo(src);
     }
 
-    if (opr.kind == Reservation::Reg) {
-        oprRegister = opr.location.reg;
-    } else {
-        oprRegister = Register::x17; // FIXME: this register might be in use
-        oprReservation = Reservation(res.type, oprRegister);
-        output += opr.emitCopyTo(oprReservation);
-    }
-
-    switch (op) {
-        case BuiltinOperator::Minus:
-            output += "neg " + toStr(resRegister) + ", "
-                    + toStr(oprRegister) + "\n";
+    switch(op) {
+        case BuiltinOperator::Plus:
+            output += "add " + toStr(dst.location.reg) + ", "
+                    + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
             break;
-        case BuiltinOperator::Not:
-            output += "mvn " + toStr(resRegister) + ", "
-                    + toStr(oprRegister) + "\n";
+        case BuiltinOperator::Minus:
+            output += "sub " + toStr(dst.location.reg) + ", "
+                    + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            break;
+        case BuiltinOperator::Star: // TODO:
+            break;
+        case BuiltinOperator::Fslash:
+            break;
+        case BuiltinOperator::Eq:
+            break;
+        case BuiltinOperator::Ne:
+            break;
+        case BuiltinOperator::Lt:
+            break;
+        case BuiltinOperator::Gt:
+            break;
+        case BuiltinOperator::Le:
+            break;
+        case BuiltinOperator::Ge:
             break;
         default:
             break;
     }
 
-    if (res.kind == Reservation::Stack) {
-        output += resReservation.emitCopyTo(res);
+    output += dst.emitCopyTo(res);
+    return output;
+}
+
+std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
+                                    Reservation opr) {
+    std::string output = "";
+    Reservation dst, src;
+
+    if (res.kind == Reservation::Reg) {
+        dst = res;
+    } else {
+        dst = Reservation(res.type, Register::x16);
     }
 
+    if (opr.kind == Reservation::Reg) {
+        src = opr;
+    } else {
+        src = Reservation(opr.type, Register::x17);
+        output += opr.emitCopyTo(src);
+    }
+
+    switch (op) {
+        case BuiltinOperator::Minus:
+            output += "neg " + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            break;
+        case BuiltinOperator::Not:
+            output += "mvn " + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            break;
+        default:
+            break;
+    }
+
+    output += dst.emitCopyTo(res);
     return output;
 }
 
