@@ -34,7 +34,8 @@ void  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Void, loc);  }
 int   { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Int, loc);  }
 char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char, loc); }
 
- /* Identifiers */
+ /* Identifiers/Return */
+"return"     { return yy::parser::make_RETURN(loc); }
 {IDENTIFIER} { return yy::parser::make_IDENTIFIER(yytext, loc); }
 
  /* Literals */

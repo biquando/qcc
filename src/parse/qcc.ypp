@@ -25,7 +25,7 @@
     #include "parse/driver.hpp"
 }
 
-%token ASSIGN COMMA LBRACE RBRACE SEMICOLON
+%token ASSIGN COMMA LBRACE RBRACE SEMICOLON RETURN
 %left <BuiltinOperator> OP_EQ OP_NE
 %left <BuiltinOperator> OP_LT OP_GT OP_LE OP_GE
 %left <BuiltinOperator> OP_PLUS OP_MINUS
@@ -42,7 +42,7 @@
 %type <FnDefNode *> fnDef
 %type <TypeNode *> type
 %type <ParamNode *> param
-%type <StatementNode *> statement declaration initialization assignment
+%type <StatementNode *> statement declaration initialization assignment return
 %type <FnCallNode *> fnCall
 %type <ExprNode *> expr
 %type <LiteralNode *> literal
@@ -98,6 +98,7 @@ statement
     : declaration { $$ = $1; }
     | initialization { $$ = $1; }
     | assignment { $$ = $1; }
+    | return { $$ = $1; }
     | fnCall { $$ = new StatementNode($1); }
     ;
 
@@ -111,6 +112,10 @@ initialization
 
 assignment
     : IDENTIFIER ASSIGN expr { $$ = new StatementNode($1, $3); }
+    ;
+
+return
+    : RETURN expr { $$ = new StatementNode($2); }
     ;
 
 fnCall

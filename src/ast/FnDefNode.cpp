@@ -54,6 +54,13 @@ void FnDefNode::emit(CompileState &cs) {
             continue; // TODO:
         }
 
+        if (sNode->kind == StatementNode::Return) {
+            auto ret = StackFrame::Reservation(nullptr, Register::x0); // TODO: types
+            statementsOutput += ret.emitFromExprNode(sf, sNode->expr);
+            statementsOutput += "b return_" + identifier + "\n";
+            continue;
+        }
+
         if (sNode->kind == StatementNode::Declaration
          || sNode->kind == StatementNode::Initialization) {
             sf->addVariable(sNode->type, sNode->identifier);
@@ -73,14 +80,13 @@ void FnDefNode::emit(CompileState &cs) {
         ios << "stp fp, lr, [fp, #-16]\n";
     }
     ios << statementsOutput;
+    cs.os << "return_" << identifier << ":\n";
     if (containsFnCalls || sf->maxStackPos > 16) {
         ios << "ldp fp, lr, [fp, #-16]\n";
         ios << "add sp, sp, #" << sf->maxStackPos << '\n';
     }
 
     cs.popFrame();
-
-
     ios << "ret\n";
     cs.os << '\n';
 }

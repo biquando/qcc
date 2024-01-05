@@ -75,17 +75,18 @@ public:
 class StatementNode {
 public:
     enum StatementKind {
-        Declaration, Initialization, Assignment, FnCall
+        Declaration, Initialization, Assignment, Return, FnCall
     } kind;
 
     TypeNode *type;             // Declaration/Initialization
     std::string identifier;     // Declaration/Initialization/Assignment
-    ExprNode *expr;             // Initialization/Assignment
+    ExprNode *expr;             // Initialization/Assignment/Return
     FnCallNode *fnCall;         // FnCall
 
     StatementNode(TypeNode *type, std::string identifier);
     StatementNode(TypeNode *type, std::string identifier, ExprNode *expr);
     StatementNode(std::string identifier, ExprNode *rexpr);
+    StatementNode(ExprNode *returnExpr);
     StatementNode(FnCallNode *fnCall);
 };
 

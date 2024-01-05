@@ -17,6 +17,10 @@ StatementNode::StatementNode(std::string identifier, ExprNode *rexpr)
           identifier(identifier),
           expr(rexpr) {}
 
+StatementNode::StatementNode(ExprNode *returnExpr)
+        : kind(Return),
+          expr(returnExpr) {}
+
 StatementNode::StatementNode(FnCallNode *fnCall)
         : kind(FnCall),
           fnCall(fnCall) {}
@@ -37,6 +41,10 @@ std::ostream &operator<<(std::ostream &os, StatementNode &node) {
         case StatementNode::Assignment:
             os << "Assignment): " << node.identifier;
             ios << '\n' << *(node.expr);
+            break;
+        case StatementNode::Return:
+            os << "Return):\n";
+            ios << *(node.expr);
             break;
         case StatementNode::FnCall:
             os << "FnCall):";
