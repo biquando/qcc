@@ -64,3 +64,5 @@ build/
 *.vsix
 
 .DS_STORE
+
+.cache

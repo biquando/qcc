@@ -102,11 +102,6 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             break;
         case ExprNode::Identifier:
             var = sf->getVariable(expr->identifier);
-            if (!var.valid) { // TEMP
-                std::cerr << "ERROR: Undefined variable: "
-                          << expr->identifier << '\n';
-                exit(1);
-            }
             output += var.emitCopyTo(*this);
             break;
         case ExprNode::FnCall:
@@ -117,8 +112,14 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             // TODO:
             break;
         case ExprNode::UnaryOp:
-            output += emitFromExprNode(sf, expr->opr);
-            output += sf->emitUnaryOp(expr->builtinOperator, *this, *this);
+            if (expr->opr->kind == ExprNode::Identifier // small optimization
+                && (var = sf->getVariable(expr->opr->identifier)).kind == Reg) {
+                output += sf->emitUnaryOp(expr->builtinOperator, *this, var);
+            } else {
+                output += emitFromExprNode(sf, expr->opr);
+                output += sf->emitUnaryOp(expr->builtinOperator, *this, *this);
+            }
+            break;
     }
     return output;
 }
@@ -135,6 +136,11 @@ void StackFrame::addVariable(TypeNode *type, std::string identifier) {
 }
 
 StackFrame::Reservation StackFrame::getVariable(std::string identifier) {
+    if (variables.find(identifier) == variables.end()) { // TEMP
+        std::cerr << "ERROR: Undefined variable: "
+                  << identifier << '\n';
+        exit(EXIT_FAILURE);
+    }
     return variables[identifier];
 }
 
