@@ -187,7 +187,8 @@ public:
         std::string emitPutValue(unsigned long val);
         std::string emitFromExprNode(StackFrame *sf, ExprNode *expr);
     };
-    std::vector<Reservation> reservations;
+    std::vector<Reservation> variableReservations;
+    std::vector<Reservation> exprReservations;
     std::unordered_map<std::string, Reservation> variables;
 
     long stackPos;
@@ -195,11 +196,15 @@ public:
     bool containsFnCalls = false;
 
     StackFrame(long initialStackPos);
+    void incStackPos(long amt);
 
     void addVariable(TypeNode *type, std::string identifier);
     Reservation getVariable(std::string identifier);
-    Reservation pushReservation(TypeNode *type);
-    void popReservation();
+
+    Reservation reserveVariable(TypeNode *type);
+    Reservation reserveExpr(TypeNode *type);
+    void unreserveVariable();
+    void unreserveExpr();
     std::string emitBinaryOp(BuiltinOperator op, Reservation res,
                              Reservation opr1, Reservation opr2);
     std::string emitUnaryOp(BuiltinOperator op, Reservation res,

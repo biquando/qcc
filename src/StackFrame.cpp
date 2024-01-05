@@ -112,13 +112,8 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             // TODO:
             break;
         case ExprNode::UnaryOp:
-            if (expr->opr->kind == ExprNode::Identifier // small optimization
-                && (var = sf->getVariable(expr->opr->identifier)).kind == Reg) {
-                output += sf->emitUnaryOp(expr->builtinOperator, *this, var);
-            } else {
-                output += emitFromExprNode(sf, expr->opr);
-                output += sf->emitUnaryOp(expr->builtinOperator, *this, *this);
-            }
+            output += emitFromExprNode(sf, expr->opr);
+            output += sf->emitUnaryOp(expr->builtinOperator, *this, *this);
             break;
     }
     return output;
@@ -130,8 +125,15 @@ StackFrame::StackFrame(long initialStackPos)
         : stackPos(initialStackPos),
           maxStackPos(initialStackPos) {}
 
+void StackFrame::incStackPos(long amt) {
+    stackPos += amt;
+    if (stackPos > maxStackPos) {
+        maxStackPos = stackPos;
+    }
+}
+
 void StackFrame::addVariable(TypeNode *type, std::string identifier) {
-    Reservation res = pushReservation(type); // TODO: prefer to push to stack
+    Reservation res = reserveVariable(type);
     variables[identifier] = res;
 }
 
@@ -144,20 +146,46 @@ StackFrame::Reservation StackFrame::getVariable(std::string identifier) {
     return variables[identifier];
 }
 
-StackFrame::Reservation StackFrame::pushReservation(TypeNode *type) {
-    int nReserved = reservations.size();
-    if (nReserved < 8) {
-        reservations.emplace_back(type, (Register)(nReserved + 8));
-    } else {
-        stackPos += 8;
-        if (stackPos > maxStackPos) { maxStackPos = stackPos; }
-        reservations.emplace_back(type, stackPos);
+StackFrame::Reservation StackFrame::reserveVariable(TypeNode *type) {
+    if (exprReservations.size() > 0) {
+        std::cerr << "COMPILER ERROR: Can't reserve variable while expressions "
+                     "are still reserved\n";
+        exit(EXIT_FAILURE);
     }
-    return reservations.back();
+    incStackPos(8);
+    variableReservations.emplace_back(type, stackPos);
+    return variableReservations.back();
 }
 
-void StackFrame::popReservation() {
-    reservations.pop_back();
+StackFrame::Reservation StackFrame::reserveExpr(TypeNode *type) {
+    int numReservedExpr = exprReservations.size();
+    if (numReservedExpr < 8) {
+        exprReservations.emplace_back(type, (Register)(numReservedExpr + 8));
+    } else {
+        incStackPos(8);
+        exprReservations.emplace_back(type, stackPos);
+    }
+    return exprReservations.back();
+}
+
+void StackFrame::unreserveVariable() {
+    if (exprReservations.size() > 0) {
+        std::cerr << "COMPILER ERROR: Can't unreserve variable while "
+                     "expressions are still reserved\n";
+        exit(EXIT_FAILURE);
+    }
+    incStackPos(-8);
+    variableReservations.pop_back();
+}
+
+void StackFrame::unreserveExpr() {
+    if (exprReservations.size() == 0) { return; }
+
+    Reservation latest = exprReservations.back();
+    if (latest.kind == Reservation::Stack) {
+        incStackPos(-8);
+    }
+    exprReservations.pop_back();
 }
 
 // TODO: Implement emitBinaryOp
