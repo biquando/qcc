@@ -25,6 +25,12 @@ StatementNode::StatementNode(FnCallNode *fnCall)
         : kind(FnCall),
           fnCall(fnCall) {}
 
+bool StatementNode::containsFnCalls() {
+    return kind == FnCall
+        || (kind == Initialization || kind == Assignment || kind == Return)
+            && expr->containsFnCalls();
+}
+
 std::ostream &operator<<(std::ostream &os, StatementNode &node) {
     IndentedStream ios(os);
     os << "StatementNode (";

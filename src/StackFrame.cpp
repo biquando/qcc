@@ -121,7 +121,6 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             break;
         case ExprNode::FnCall: {
             // TODO: types, and allow more than 8 arguments
-            sf->containsFnCalls = true;
             FnCallNode *fnCall = expr->fnCall;
             for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
                 auto res = StackFrame::Reservation(nullptr, (Register)i);
@@ -149,9 +148,7 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
 
 /* SECTION: StackFrame */
 
-StackFrame::StackFrame(long initialStackPos)
-        : stackPos(initialStackPos),
-          maxStackPos(initialStackPos) {}
+StackFrame::StackFrame() {}
 
 void StackFrame::incStackPos(long amt) {
     stackPos += amt;

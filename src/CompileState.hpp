@@ -88,6 +88,7 @@ public:
     StatementNode(std::string identifier, ExprNode *rexpr);
     StatementNode(ExprNode *returnExpr);
     StatementNode(FnCallNode *fnCall);
+    bool containsFnCalls();
 };
 
 class FnCallNode {
@@ -116,6 +117,7 @@ public:
     ExprNode(FnCallNode *fnCall);
     ExprNode(BuiltinOperator binaryOperator, ExprNode *opr1, ExprNode *opr2);
     ExprNode(BuiltinOperator unaryOperator, ExprNode *opr);
+    bool containsFnCalls();
 };
 
 class LiteralNode {
@@ -193,11 +195,10 @@ public:
     std::vector<Reservation> exprReservations;
     std::unordered_map<std::string, Reservation> variables;
 
-    long stackPos;
-    long maxStackPos;
-    bool containsFnCalls = false;
+    long stackPos = 0;
+    long maxStackPos = 0;
 
-    StackFrame(long initialStackPos);
+    StackFrame();
     void incStackPos(long amt);
 
     void addVariable(TypeNode *type, std::string identifier);
@@ -220,7 +221,7 @@ public:
     CompileState(std::ostream &os);
 
     std::vector<StackFrame> frames;
-    void pushFrame(long initialStackPos);
+    void pushFrame();
     StackFrame *getTopFrame();
     void popFrame();
 };

@@ -24,6 +24,13 @@ ExprNode::ExprNode(BuiltinOperator unaryOperator, ExprNode *opr)
           builtinOperator(unaryOperator),
           opr(opr) {}
 
+bool ExprNode::containsFnCalls() {
+    return kind == FnCall
+        || kind == BinaryOp
+            && (opr1->containsFnCalls() || opr2->containsFnCalls())
+        || kind == UnaryOp
+            && opr->containsFnCalls();
+}
 
 std::ostream &operator<<(std::ostream &os, ExprNode &node) {
     IndentedStream ios(os);

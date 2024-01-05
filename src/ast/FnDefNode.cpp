@@ -42,12 +42,18 @@ void FnDefNode::emit(CompileState &cs) {
     ios << ".p2align 2\n";
     cs.os << "_" << identifier << ":\n";
 
-
-    cs.pushFrame(16);
-    StackFrame *sf = cs.getTopFrame();
     bool containsFnCalls = false;
-    std::string statementsOutput = "";
+    for (StatementNode *sNode : block) {
+        containsFnCalls |= sNode->containsFnCalls();
+    }
 
+    cs.pushFrame();
+    StackFrame *sf = cs.getTopFrame();
+    if (containsFnCalls) {
+        sf->incStackPos(16);
+    }
+
+    std::string statementsOutput = "";
     for (int i = 0; i < paramList.size() && i < 8; i++) { // TODO: support more than 8 arguments
         ParamNode *param = paramList[i];
         sf->addVariable(param->type, param->identifier);
@@ -59,7 +65,6 @@ void FnDefNode::emit(CompileState &cs) {
 
     for (auto *sNode : block) {
         if (sNode->kind == StatementNode::FnCall) {
-            containsFnCalls = true;
             continue; // TODO:
         }
 
@@ -82,19 +87,22 @@ void FnDefNode::emit(CompileState &cs) {
             statementsOutput += var.emitFromExprNode(sf, sNode->expr);
         }
     }
-    containsFnCalls |= sf->containsFnCalls;
     while (sf->maxStackPos % 16 != 0) {
-        sf->maxStackPos += 1; // HACK: don't do this pls
+        sf->maxStackPos += 1;
     }
 
-    ios << "sub sp, sp, #" << sf->maxStackPos << '\n';
-    ios << "stp fp, lr, [sp, #" << sf->maxStackPos - 16 << "]\n";
+    if (containsFnCalls) {
+        ios << "sub sp, sp, #" << sf->maxStackPos << '\n';
+        ios << "stp fp, lr, [sp, #" << sf->maxStackPos - 16 << "]\n";
+    }
 
     ios << statementsOutput;
     cs.os << "return_" << identifier << ":\n";
 
-    ios << "ldp fp, lr, [sp, #" << sf->maxStackPos - 16 << "]\n";
-    ios << "add sp, sp, #" << sf->maxStackPos << '\n';
+    if (containsFnCalls) {
+        ios << "ldp fp, lr, [sp, #" << sf->maxStackPos - 16 << "]\n";
+        ios << "add sp, sp, #" << sf->maxStackPos << '\n';
+    }
 
     cs.popFrame();
     ios << "ret\n";

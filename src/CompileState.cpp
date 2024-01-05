@@ -13,8 +13,8 @@ std::string toStr(long l) {
 CompileState::CompileState(std::ostream &os)
         : os(os) {}
 
-void CompileState::pushFrame(long initialStackPos = 0) {
-    frames.emplace_back(initialStackPos);
+void CompileState::pushFrame() {
+    frames.emplace_back();
 }
 
 StackFrame *CompileState::getTopFrame() {
