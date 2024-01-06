@@ -68,8 +68,14 @@ void FnDefNode::emit(CompileState &cs) {
             // TODO: types, and allow more than 8 arguments
             FnCallNode *fnCall = sNode->fnCall;
             for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
-                auto res = StackFrame::Reservation(nullptr, (Register)i);
-                statementsOutput += res.emitFromExprNode(sf, fnCall->argList[i]);
+                auto arg = StackFrame::Reservation(nullptr, (Register)i);
+                if (fnCall->argList[i]->containsFnCalls()) {
+                    auto tmpRes = sf->reserveExpr(nullptr);
+                    statementsOutput += tmpRes.emitFromExprNode(sf, fnCall->argList[i]);
+                    statementsOutput += tmpRes.emitCopyTo(arg);
+                } else {
+                    statementsOutput += arg.emitFromExprNode(sf, fnCall->argList[i]);
+                }
             }
             statementsOutput += sf->emitSaveCaller();
             statementsOutput += "bl _" + fnCall->identifier + "\n";

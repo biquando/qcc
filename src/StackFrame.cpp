@@ -123,8 +123,14 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             // TODO: types, and allow more than 8 arguments
             FnCallNode *fnCall = expr->fnCall;
             for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
-                auto res = StackFrame::Reservation(nullptr, (Register)i);
-                output += res.emitFromExprNode(sf, fnCall->argList[i]);
+                auto arg = StackFrame::Reservation(nullptr, (Register)i);
+                if (fnCall->argList[i]->containsFnCalls()) {
+                    auto tmpRes = sf->reserveExpr(nullptr);
+                    output += tmpRes.emitFromExprNode(sf, fnCall->argList[i]);
+                    output += tmpRes.emitCopyTo(arg);
+                } else {
+                    output += arg.emitFromExprNode(sf, fnCall->argList[i]);
+                }
             }
             auto returnVal = StackFrame::Reservation(nullptr, Register::x0);
             output += sf->emitSaveCaller();
