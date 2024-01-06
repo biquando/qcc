@@ -22,6 +22,10 @@ std::ostream &operator<<(std::ostream &os, BuiltinOperator &op) {
         case BuiltinOperator::Le:     return os << "Le";
         case BuiltinOperator::Ge:     return os << "Ge";
         case BuiltinOperator::Not:    return os << "Not";
+        case BuiltinOperator::BitNot: return os << "BitNot";
+        case BuiltinOperator::BitAnd: return os << "BitAnd";
+        case BuiltinOperator::BitOr:  return os << "BitOr";
+        case BuiltinOperator::BitXor: return os << "BitXor";
     }
 }
 

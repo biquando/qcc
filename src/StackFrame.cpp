@@ -283,6 +283,21 @@ std::string StackFrame::emitBinaryOp(BuiltinOperator op, Reservation res,
                     + toStr(src.location.reg) + "\n";
             output += "cset " + toStr(dst.location.reg) + ", ge\n"; // TODO: assumes signed
             break;
+        case BuiltinOperator::BitAnd:
+            output += "and " + toStr(dst.location.reg) + ", "
+                    + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            break;
+        case BuiltinOperator::BitOr:
+            output += "orr " + toStr(dst.location.reg) + ", "
+                    + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            break;
+        case BuiltinOperator::BitXor:
+            output += "eor " + toStr(dst.location.reg) + ", "
+                    + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            break;
         default:
             break;
     }
@@ -315,6 +330,10 @@ std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
                     + toStr(src.location.reg) + "\n";
             break;
         case BuiltinOperator::Not:
+            output += "cmp " + toStr(src.location.reg) + ", #0\n";
+            output += "cset " + toStr(dst.location.reg) + ", eq\n";
+            break;
+        case BuiltinOperator::BitNot:
             output += "mvn " + toStr(dst.location.reg) + ", "
                     + toStr(src.location.reg) + "\n";
             break;

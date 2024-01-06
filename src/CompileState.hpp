@@ -18,6 +18,7 @@ enum class BuiltinOperator {
     Eq, Ne,
     Lt, Gt, Le, Ge,
     Not,
+    BitNot, BitAnd, BitOr, BitXor
 };
 
 enum class LiteralType {
