@@ -243,21 +243,45 @@ std::string StackFrame::emitBinaryOp(BuiltinOperator op, Reservation res,
                     + toStr(dst.location.reg) + ", "
                     + toStr(src.location.reg) + "\n";
             break;
-        case BuiltinOperator::Star: // TODO:
+        case BuiltinOperator::Star:
+            output += "mul " + toStr(dst.location.reg) + ", "
+                    + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
             break;
         case BuiltinOperator::Fslash:
+            output += "sdiv " + toStr(dst.location.reg) + ", " // TODO: assumes signed
+                    + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
             break;
         case BuiltinOperator::Eq:
+            output += "cmp " + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            output += "cset " + toStr(dst.location.reg) + ", eq\n";
             break;
         case BuiltinOperator::Ne:
+            output += "cmp " + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            output += "cset " + toStr(dst.location.reg) + ", ne\n";
             break;
         case BuiltinOperator::Lt:
+            output += "cmp " + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            output += "cset " + toStr(dst.location.reg) + ", lt\n"; // TODO: assumes signed
             break;
         case BuiltinOperator::Gt:
+            output += "cmp " + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            output += "cset " + toStr(dst.location.reg) + ", gt\n"; // TODO: assumes signed
             break;
         case BuiltinOperator::Le:
+            output += "cmp " + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            output += "cset " + toStr(dst.location.reg) + ", le\n"; // TODO: assumes signed
             break;
         case BuiltinOperator::Ge:
+            output += "cmp " + toStr(dst.location.reg) + ", "
+                    + toStr(src.location.reg) + "\n";
+            output += "cset " + toStr(dst.location.reg) + ", ge\n"; // TODO: assumes signed
             break;
         default:
             break;
