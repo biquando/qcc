@@ -71,7 +71,9 @@ void FnDefNode::emit(CompileState &cs) {
                 auto res = StackFrame::Reservation(nullptr, (Register)i);
                 statementsOutput += res.emitFromExprNode(sf, fnCall->argList[i]);
             }
-            statementsOutput += "bl _" + fnCall->identifier + "\n"; // FIXME: save x8-x15
+            statementsOutput += sf->emitSaveCaller();
+            statementsOutput += "bl _" + fnCall->identifier + "\n";
+            statementsOutput += sf->emitLoadCaller();
             continue;
         }
 

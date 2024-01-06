@@ -127,7 +127,9 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
                 output += res.emitFromExprNode(sf, fnCall->argList[i]);
             }
             auto returnVal = StackFrame::Reservation(nullptr, Register::x0);
-            output += "bl _" + fnCall->identifier + "\n"; // FIXME: save x8-x15
+            output += sf->emitSaveCaller();
+            output += "bl _" + fnCall->identifier + "\n";
+            output += sf->emitLoadCaller();
             output += returnVal.emitCopyTo(*this);
             break;
         }
@@ -345,3 +347,28 @@ std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
     return output;
 }
 
+std::string StackFrame::emitSaveCaller() {
+    std::string output = "";
+    int numToSave = exprReservations.size() < 8 ? exprReservations.size() : 8;
+    for (int i = 1; i < numToSave; i += 2) {
+        output += "stp " + toStr((Register)(i+7)) + ", "
+                + toStr((Register)(i+8)) + ", [sp, #-16]!\n";
+    }
+    if (numToSave % 2 == 1) {
+        output += "str " + toStr((Register)(numToSave+7)) + ", [sp, #-16]\n";
+    }
+    return output;
+}
+
+std::string StackFrame::emitLoadCaller() {
+    std::string output = "";
+    int numToLoad = exprReservations.size() < 8 ? exprReservations.size() : 8;
+    if (numToLoad % 2 == 1) {
+        output += "ldr " + toStr((Register)(numToLoad+7)) + ", [sp], #16\n";
+    }
+    for (int i = numToLoad - 1 - (numToLoad % 2); i > 0; i -= 2) {
+        output += "ldp " + toStr((Register)(i+7)) + ", "
+                + toStr((Register)(i+8)) + ", [sp], #16\n";
+    }
+    return output;
+}
