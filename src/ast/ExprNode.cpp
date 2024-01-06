@@ -48,11 +48,11 @@ std::ostream &operator<<(std::ostream &os, ExprNode &node) {
         case ExprNode::BinaryOp:
             os << " (BinaryOp: " << node.builtinOperator << ")\n";
             ios << *(node.opr1) << '\n';
-            ios << *(node.opr2) << '\n';
+            ios << *(node.opr2);
             break;
         case ExprNode::UnaryOp:
             os << " (UnaryOp: " << node.builtinOperator << ")\n";
-            ios << *(node.opr) << '\n';
+            ios << *(node.opr);
             break;
     }
     return os;
