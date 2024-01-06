@@ -65,12 +65,25 @@ void FnDefNode::emit(CompileState &cs) {
 
     for (auto *sNode : block) {
         if (sNode->kind == StatementNode::FnCall) {
-            continue; // TODO:
+            // TODO: types, and allow more than 8 arguments
+            FnCallNode *fnCall = sNode->fnCall;
+            for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
+                auto res = StackFrame::Reservation(nullptr, (Register)i);
+                statementsOutput += res.emitFromExprNode(sf, fnCall->argList[i]);
+            }
+            statementsOutput += "bl _" + fnCall->identifier + "\n"; // FIXME: save x8-x15
+            continue;
         }
 
         if (sNode->kind == StatementNode::Return) {
             auto ret = StackFrame::Reservation(nullptr, Register::x0); // TODO: types
-            statementsOutput += ret.emitFromExprNode(sf, sNode->expr);
+            if (sNode->containsFnCalls()) {
+                auto tmpRes = sf->reserveExpr(nullptr); // TODO: types
+                statementsOutput += tmpRes.emitFromExprNode(sf, sNode->expr);
+                statementsOutput += tmpRes.emitCopyTo(ret);
+            } else {
+                statementsOutput += ret.emitFromExprNode(sf, sNode->expr);
+            }
             statementsOutput += "b return_" + identifier + "\n";
             continue;
         }
