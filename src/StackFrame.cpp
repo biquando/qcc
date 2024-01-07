@@ -361,7 +361,7 @@ std::string StackFrame::emitSaveCaller() {
                 + toStr((Register)(i+8)) + ", [sp, #-16]!\n";
     }
     if (numToSave % 2 == 1) {
-        output += "str " + toStr((Register)(numToSave+7)) + ", [sp, #-16]\n";
+        output += "str " + toStr((Register)(numToSave+7)) + ", [sp, #-16]!\n";
     }
     return output;
 }

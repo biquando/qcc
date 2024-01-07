@@ -63,10 +63,26 @@ void FnDefNode::emit(CompileState &cs) {
         statementsOutput += from.emitCopyTo(to);
     }
 
+    if (identifier == "main") {
+        auto *zero = new LiteralNode(0l);
+        auto *retVal = new ExprNode(zero);
+        auto *retStatement = new StatementNode(retVal);
+        block.push_back(retStatement);
+    }
+
     for (auto *sNode : block) {
         if (sNode->kind == StatementNode::FnCall) {
-            // TODO: types, and allow more than 8 arguments
             FnCallNode *fnCall = sNode->fnCall;
+
+            // Check for builtin functions
+            for (auto &builtin : BUILTIN_FNS) {
+                const std::string &name = builtin.second;
+                if (name == fnCall->identifier) {
+                    cs.usedBuiltinFns.insert(builtin.first);
+                }
+            }
+
+            // TODO: types, and allow more than 8 arguments
             for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
                 auto arg = StackFrame::Reservation(nullptr, (Register)i);
                 if (fnCall->argList[i]->containsFnCalls()) {

@@ -45,4 +45,8 @@ int main(int argc, char *argv[]) {
     for (auto *fnDefNode : drv.fnDefNodes) {
         fnDefNode->emit(cs);
     }
+
+    for (auto &builtin : cs.usedBuiltinFns) {
+        cs.os << BUILTIN_FN_DEFS.at(builtin);
+    }
 }

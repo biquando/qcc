@@ -3,28 +3,11 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
+#include "builtins.hpp"
 
 class CompileState;
-
-enum class BuiltinType {
-    Void,
-    Int,
-    Char,
-};
-
-enum class BuiltinOperator {
-    Plus, Minus, Star, Fslash,
-    Eq, Ne,
-    Lt, Gt, Le, Ge,
-    Not,
-    BitNot, BitAnd, BitOr, BitXor
-};
-
-enum class LiteralType {
-    Int,
-    Char,
-};
 
 // Declarations
 class FnDefNode;
@@ -227,4 +210,6 @@ public:
     void pushFrame();
     StackFrame *getTopFrame();
     void popFrame();
+
+    std::unordered_set<BuiltinFn> usedBuiltinFns;
 };
