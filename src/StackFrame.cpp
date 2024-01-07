@@ -120,11 +120,12 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             output += var.emitCopyTo(*this);
             break;
         case ExprNode::FnCall: {
-            // TODO: use fnDefTypes, and allow more than 8 arguments
+            // TODO: allow more than 8 arguments
             FnCallNode *fnCall = expr->fnCall;
+            FnDeclNode *fnDecl = fnCall->fnDecl;
             for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
                 ExprNode *argNode = fnCall->argList[i];
-                auto arg = StackFrame::Reservation(argNode->type, (Register)i);
+                auto arg = StackFrame::Reservation(fnDecl->paramList[i]->type, (Register)i);
                 if (argNode->containsFnCalls()) {
                     auto tmpRes = sf->reserveExpr(argNode->type);
                     output += tmpRes.emitFromExprNode(sf, argNode);
@@ -133,7 +134,7 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
                     output += arg.emitFromExprNode(sf, argNode);
                 }
             }
-            auto returnVal = StackFrame::Reservation(nullptr, Register::x0); // TODO: return type
+            auto returnVal = StackFrame::Reservation(fnDecl->returnType, Register::x0);
             output += sf->emitSaveCaller();
             output += "bl _" + fnCall->identifier + "\n";
             output += sf->emitLoadCaller();

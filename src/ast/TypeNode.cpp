@@ -20,6 +20,10 @@ bool TypeNode::operator==(TypeNode &other) {
         : builtinType == other.builtinType;
 }
 
+bool TypeNode::operator!=(TypeNode &other) {
+    return !(*this == other);
+}
+
 std::ostream &operator<<(std::ostream &os, TypeNode &node) {
     os << "TypeNode: ";
     if (node.isCustom) {

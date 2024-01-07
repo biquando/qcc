@@ -42,6 +42,7 @@
 %token <long> INT_LITERAL
 %token <char> CHAR_LITERAL
 
+%type <FnDeclNode *> fnDecl
 %type <FnDefNode *> fnDef
 %type <TypeNode *> type
 %type <ParamNode *> param
@@ -59,6 +60,7 @@
 %start file;
 file
     :
+    | file fnDecl
     | file fnDef {
         drv.fnDefNodes.push_back($2);
         delete drv.cs->varTypes;
@@ -66,13 +68,27 @@ file
       }
     ;
 
+fnDecl
+    : type IDENTIFIER LPAREN RPAREN SEMICOLON {
+        $$ = new FnDeclNode($1, $2);
+        drv.cs->addFnDecl($$);
+      }
+    | type IDENTIFIER LPAREN paramList RPAREN SEMICOLON {
+        $$ = new FnDeclNode($1, $2, *$4);
+        drv.cs->addFnDecl($$);
+        delete $4;
+      }
+    ;
+
 fnDef
     : type IDENTIFIER LPAREN RPAREN blockWithBraces {
         $$ = new FnDefNode($1, $2, *$5);
+        drv.cs->addFnDecl($$);
         delete $5;
       }
     | type IDENTIFIER LPAREN paramList RPAREN blockWithBraces {
         $$ = new FnDefNode($1, $2, *$4, *$6);
+        drv.cs->addFnDecl($$);
         delete $4;
         delete $6;
       }
@@ -126,8 +142,8 @@ return
     ;
 
 fnCall
-    : IDENTIFIER LPAREN argList RPAREN { $$ = new FnCallNode($1, drv.cs->getVarType($1), *$3); delete $3; }
-    | IDENTIFIER LPAREN RPAREN { $$ = new FnCallNode($1, drv.cs->getVarType($1)); }
+    : IDENTIFIER LPAREN argList RPAREN { $$ = new FnCallNode($1, drv.cs->getFnDecl($1), *$3); delete $3; }
+    | IDENTIFIER LPAREN RPAREN { $$ = new FnCallNode($1, drv.cs->getFnDecl($1)); }
     ;
 
 argList

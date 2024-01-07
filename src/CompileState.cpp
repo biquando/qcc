@@ -13,7 +13,17 @@ std::string toStr(long l) {
 
 CompileState::CompileState(std::ostream &os)
         : os(os),
-          varTypes(new std::unordered_map<std::string, TypeNode *>()) {}
+          varTypes(new std::unordered_map<std::string, TypeNode *>()) {
+
+    // Add builtin function signatures
+    addFnDecl(new FnDeclNode(
+        new TypeNode(BuiltinType::Void),
+        "printi",
+        std::vector<ParamNode *>{
+            new ParamNode(new TypeNode(BuiltinType::Int), "i")
+        })
+    );
+}
 
 void CompileState::pushFrame() {
     frames.emplace_back();
@@ -42,4 +52,56 @@ void CompileState::setVarType(std::string identifier, TypeNode *type) {
         exit(EXIT_FAILURE);
     }
     (*varTypes)[identifier] = type;
+}
+
+FnDeclNode *CompileState::getFnDecl(std::string identifier) {
+    if (fnDecls.find(identifier) != fnDecls.end()) {
+        return fnDecls.at(identifier);
+    }
+    if (fnDefs.find(identifier) != fnDefs.end()) {
+        return fnDefs.at(identifier);
+    }
+    std::cerr << "ERROR: Function " << identifier << " is not declared\n";
+    exit(EXIT_FAILURE);
+}
+
+void CompileState::addFnDecl(FnDeclNode *fnDecl) {
+    std::string &identifier = fnDecl->identifier;
+
+    if (fnDecls.find(identifier) != fnDecls.end()
+            && *fnDecl != *fnDecls.at(identifier)) {
+        goto error_wrong_types;
+    }
+
+    if (fnDefs.find(identifier) != fnDefs.end()
+            && *fnDecl != *fnDefs.at(identifier)) {
+        goto error_wrong_types;
+    }
+
+    fnDecls[identifier] = fnDecl;
+    return;
+
+error_wrong_types:
+    std::cerr << "ERROR: Tried to redeclare function " << identifier
+              << " with different types\n";
+    exit(EXIT_FAILURE);
+}
+
+void CompileState::addFnDef(FnDefNode *fnDef) {
+    std::string &identifier = fnDef->identifier;
+
+    if (fnDecls.find(identifier) != fnDecls.end()
+            && *fnDef != *fnDecls.at(identifier)) {
+        std::cerr << "ERROR: Tried to redeclare function " << identifier
+                << " with different types\n";
+        exit(EXIT_FAILURE);
+    }
+
+    if (fnDefs.find(identifier) != fnDefs.end()
+            && *fnDef != *fnDefs.at(identifier)) {
+        std::cerr << "ERROR: Tried to redefine function " << identifier << '\n';
+        exit(EXIT_FAILURE);
+    }
+
+    fnDefs[identifier] = fnDef;
 }

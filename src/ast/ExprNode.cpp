@@ -14,7 +14,7 @@ ExprNode::ExprNode(std::string identifier, TypeNode *type)
 ExprNode::ExprNode(FnCallNode *fnCall)
         : kind(FnCall),
           fnCall(fnCall),
-          type(fnCall->retType) {}
+          type(fnCall->fnDecl->returnType) {}
 
 ExprNode::ExprNode(BuiltinOperator binaryOperator, ExprNode *opr1, ExprNode *opr2)
         : kind(BinaryOp),

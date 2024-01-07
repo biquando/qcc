@@ -10,6 +10,7 @@
 class CompileState;
 
 // Declarations
+class FnDeclNode;
 class FnDefNode;
 class TypeNode;
 class ParamNode;
@@ -22,11 +23,21 @@ class LiteralNode;
 
 // Definitions
 
-class FnDefNode {
+class FnDeclNode {
 public:
     TypeNode *returnType;
     std::string identifier;
-    std::vector<ParamNode *> paramList;
+    std::vector <ParamNode *> paramList;
+    FnDeclNode(TypeNode *returnType, std::string identifier);
+    FnDeclNode(TypeNode *returnType,
+               std::string identifier,
+               std::vector<ParamNode *> paramList);
+    virtual bool operator==(FnDeclNode &other);
+    virtual bool operator!=(FnDeclNode &other);
+};
+
+class FnDefNode : public FnDeclNode {
+public:
     std::vector<StatementNode *> block;
 
     FnDefNode(TypeNode *returnType,
@@ -49,6 +60,7 @@ public:
     TypeNode(std::string customType);
     TypeNode(LiteralType literalType);
     bool operator==(TypeNode &other);
+    bool operator!=(TypeNode &other);
 };
 
 class ParamNode {
@@ -80,10 +92,12 @@ public:
 class FnCallNode {
 public:
     std::string identifier;
-    TypeNode *retType;
+    FnDeclNode *fnDecl;
     std::vector<ExprNode *> argList;
-    FnCallNode(std::string identifier, TypeNode *retType, std::vector<ExprNode *> argList);
-    FnCallNode(std::string identifier, TypeNode *retType);
+    FnCallNode(std::string identifier, FnDeclNode *fnDecl, std::vector<ExprNode *> argList);
+    FnCallNode(std::string identifier, FnDeclNode *fnDecl);
+private:
+    void verifyParameters();
 };
 
 class ExprNode {
@@ -123,6 +137,7 @@ std::ostream &operator<<(std::ostream &os, BuiltinType &type);
 std::ostream &operator<<(std::ostream &os, BuiltinOperator &op);
 std::ostream &operator<<(std::ostream &os, LiteralType &type);
 
+std::ostream &operator<<(std::ostream &os, FnDeclNode &node);
 std::ostream &operator<<(std::ostream &os, FnDefNode &node);
 std::ostream &operator<<(std::ostream &os, TypeNode &node);
 std::ostream &operator<<(std::ostream &os, ParamNode &node);
@@ -220,4 +235,10 @@ public:
     std::unordered_map<std::string, TypeNode *> *varTypes;
     TypeNode *getVarType(std::string identifier);
     void setVarType(std::string identifier, TypeNode *type);
+
+    std::unordered_map<std::string, FnDeclNode *> fnDecls;
+    std::unordered_map<std::string, FnDefNode *> fnDefs;
+    FnDeclNode *getFnDecl(std::string identifier);
+    void addFnDecl(FnDeclNode *fnDecl);
+    void addFnDef(FnDefNode *fnDef);
 };

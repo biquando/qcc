@@ -5,17 +5,14 @@
 FnDefNode::FnDefNode(TypeNode *returnType,
               std::string identifier,
               std::vector<StatementNode *> block)
-        : returnType(returnType),
-          identifier(identifier),
+        : FnDeclNode(returnType, identifier),
           block(block) {}
 
 FnDefNode::FnDefNode(TypeNode *returnType,
               std::string identifier,
               std::vector<ParamNode *> paramList,
               std::vector<StatementNode *> block)
-        : returnType(returnType),
-          identifier(identifier),
-          paramList(paramList),
+        : FnDeclNode(returnType, identifier, paramList),
           block(block) {}
 
 std::ostream &operator<<(std::ostream &os, FnDefNode &node) {

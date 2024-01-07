@@ -4,6 +4,7 @@ set(QCC_SOURCES
     CompileState.cpp
     StackFrame.cpp
     ast/ast.cpp
+    ast/FnDeclNode.cpp
     ast/FnDefNode.cpp
     ast/TypeNode.cpp
     ast/ParamNode.cpp
