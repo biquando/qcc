@@ -4,6 +4,7 @@
 #include <vector>
 #include "qcc.y.hpp"
 #include "ast/ast.hpp"
+#include "CompileState.hpp"
 
 #define YY_DECL yy::parser::symbol_type yylex(Driver &drv)
 YY_DECL;
@@ -15,11 +16,12 @@ public:
     bool traceScanning;
     yy::location location;
     std::string file;
+    CompileState *cs;
 
     std::vector<FnDefNode *> fnDefNodes;
     int res = 0;
 
-    Driver(std::string execName);
+    Driver(std::string execName, CompileState *cs);
     int parse(const std::string &f);
     void scan_begin();
     void scan_end();

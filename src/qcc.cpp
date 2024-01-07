@@ -8,7 +8,8 @@
 int main(int argc, char *argv[]) {
     /* SECTION: Parsing */
 
-    Driver drv(argv[0]);
+    CompileState cs(std::cout);
+    Driver drv(argv[0], &cs);
     int res = 0;
     bool parsedSomeFiles = false;
     bool debug = false;
@@ -36,7 +37,6 @@ int main(int argc, char *argv[]) {
         std::cerr << "\n=== OUTPUT ===\n";
     }
 
-    CompileState cs(std::cout);
     std::ostream &os = cs.os;
     IndentedStream ios(os, cs.indent);
 
@@ -47,6 +47,6 @@ int main(int argc, char *argv[]) {
     }
 
     for (auto &builtin : cs.usedBuiltinFns) {
-        cs.os << BUILTIN_FN_DEFS.at(builtin);
+        os << BUILTIN_FN_DEFS.at(builtin);
     }
 }

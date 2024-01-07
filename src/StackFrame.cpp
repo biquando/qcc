@@ -120,19 +120,20 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             output += var.emitCopyTo(*this);
             break;
         case ExprNode::FnCall: {
-            // TODO: types, and allow more than 8 arguments
+            // TODO: use fnDefTypes, and allow more than 8 arguments
             FnCallNode *fnCall = expr->fnCall;
             for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
-                auto arg = StackFrame::Reservation(nullptr, (Register)i);
-                if (fnCall->argList[i]->containsFnCalls()) {
-                    auto tmpRes = sf->reserveExpr(nullptr);
-                    output += tmpRes.emitFromExprNode(sf, fnCall->argList[i]);
+                ExprNode *argNode = fnCall->argList[i];
+                auto arg = StackFrame::Reservation(argNode->type, (Register)i);
+                if (argNode->containsFnCalls()) {
+                    auto tmpRes = sf->reserveExpr(argNode->type);
+                    output += tmpRes.emitFromExprNode(sf, argNode);
                     output += tmpRes.emitCopyTo(arg);
                 } else {
-                    output += arg.emitFromExprNode(sf, fnCall->argList[i]);
+                    output += arg.emitFromExprNode(sf, argNode);
                 }
             }
-            auto returnVal = StackFrame::Reservation(nullptr, Register::x0);
+            auto returnVal = StackFrame::Reservation(nullptr, Register::x0); // TODO: return type
             output += sf->emitSaveCaller();
             output += "bl _" + fnCall->identifier + "\n";
             output += sf->emitLoadCaller();
@@ -140,7 +141,7 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             break;
         }
         case ExprNode::BinaryOp:
-            exprRes = sf->reserveExpr(nullptr); // TODO: use actual types
+            exprRes = sf->reserveExpr(expr->type);
             output += emitFromExprNode(sf, expr->opr1);
             output += exprRes.emitFromExprNode(sf, expr->opr2);
             output += sf->emitBinaryOp(expr->builtinOperator, *this, *this, exprRes);

@@ -59,7 +59,11 @@
 %start file;
 file
     :
-    | file fnDef { drv.fnDefNodes.push_back($2); }
+    | file fnDef {
+        drv.fnDefNodes.push_back($2);
+        delete drv.cs->varTypes;
+        drv.cs->varTypes = new std::unordered_map<std::string, TypeNode *>();
+      }
     ;
 
 fnDef
@@ -76,7 +80,7 @@ fnDef
 
 type
     : BUILTIN_TYPE { $$ = new TypeNode($1); }
-    | IDENTIFIER { $$ = new TypeNode($1); }
+    /* | IDENTIFIER { $$ = new TypeNode($1); } */
     ;
 
 paramList
@@ -106,11 +110,11 @@ statement
     ;
 
 declaration
-    : type IDENTIFIER { $$ = new StatementNode($1, $2); }
+    : type IDENTIFIER { $$ = new StatementNode($1, $2); drv.cs->setVarType($2, $1); }
     ;
 
 initialization
-    : type IDENTIFIER ASSIGN expr { $$ = new StatementNode($1, $2, $4); }
+    : type IDENTIFIER ASSIGN expr { $$ = new StatementNode($1, $2, $4); drv.cs->setVarType($2, $1); }
     ;
 
 assignment
@@ -122,8 +126,8 @@ return
     ;
 
 fnCall
-    : IDENTIFIER LPAREN argList RPAREN { $$ = new FnCallNode($1, *$3); delete $3; }
-    | IDENTIFIER LPAREN RPAREN { $$ = new FnCallNode($1); }
+    : IDENTIFIER LPAREN argList RPAREN { $$ = new FnCallNode($1, drv.cs->getVarType($1), *$3); delete $3; }
+    | IDENTIFIER LPAREN RPAREN { $$ = new FnCallNode($1, drv.cs->getVarType($1)); }
     ;
 
 argList
@@ -133,7 +137,7 @@ argList
 
 expr
     : literal { $$ = new ExprNode($1); }
-    | IDENTIFIER { $$ = new ExprNode($1); }
+    | IDENTIFIER { $$ = new ExprNode($1, drv.cs->getVarType($1)); }
     | fnCall { $$ = new ExprNode($1); }
     | expr OP_PLUS    expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_MINUS   expr { $$ = new ExprNode($2, $1, $3); }

@@ -1,8 +1,10 @@
 #include "driver.hpp"
 #include "qcc.y.hpp"
+#include "CompileState.hpp"
 
-Driver::Driver(std::string execName)
+Driver::Driver(std::string execName, CompileState *cs)
         : execName(execName),
+          cs(cs),
           traceParsing(false),
           traceScanning(false) {}
 

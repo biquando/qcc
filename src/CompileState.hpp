@@ -47,6 +47,8 @@ public:
     std::string customType;
     TypeNode(BuiltinType builtinType);
     TypeNode(std::string customType);
+    TypeNode(LiteralType literalType);
+    bool operator==(TypeNode &other);
 };
 
 class ParamNode {
@@ -78,9 +80,10 @@ public:
 class FnCallNode {
 public:
     std::string identifier;
+    TypeNode *retType;
     std::vector<ExprNode *> argList;
-    FnCallNode(std::string identifier, std::vector<ExprNode *> argList);
-    FnCallNode(std::string identifier);
+    FnCallNode(std::string identifier, TypeNode *retType, std::vector<ExprNode *> argList);
+    FnCallNode(std::string identifier, TypeNode *retType);
 };
 
 class ExprNode {
@@ -95,9 +98,10 @@ public:
     BuiltinOperator builtinOperator;    // BinaryOp/UnaryOp
     ExprNode *opr1, *opr2;              // BinaryOp
     ExprNode *opr;                      // UnaryOp
+    TypeNode *type;
 
     ExprNode(LiteralNode *literal);
-    ExprNode(std::string identifier);
+    ExprNode(std::string identifier, TypeNode *type);
     ExprNode(FnCallNode *fnCall);
     ExprNode(BuiltinOperator binaryOperator, ExprNode *opr1, ExprNode *opr2);
     ExprNode(BuiltinOperator unaryOperator, ExprNode *opr);
@@ -212,4 +216,8 @@ public:
     void popFrame();
 
     std::unordered_set<BuiltinFn> usedBuiltinFns;
+
+    std::unordered_map<std::string, TypeNode *> *varTypes;
+    TypeNode *getVarType(std::string identifier);
+    void setVarType(std::string identifier, TypeNode *type);
 };

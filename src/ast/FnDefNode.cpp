@@ -82,15 +82,16 @@ void FnDefNode::emit(CompileState &cs) {
                 }
             }
 
-            // TODO: types, and allow more than 8 arguments
+            // TODO: use fnDef types instead of fnCall types, and allow more than 8 arguments
             for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
-                auto arg = StackFrame::Reservation(nullptr, (Register)i);
-                if (fnCall->argList[i]->containsFnCalls()) {
-                    auto tmpRes = sf->reserveExpr(nullptr);
-                    statementsOutput += tmpRes.emitFromExprNode(sf, fnCall->argList[i]);
+                ExprNode *argNode = fnCall->argList[i];
+                auto arg = StackFrame::Reservation(argNode->type, (Register)i);
+                if (argNode->containsFnCalls()) {
+                    auto tmpRes = sf->reserveExpr(argNode->type);
+                    statementsOutput += tmpRes.emitFromExprNode(sf, argNode);
                     statementsOutput += tmpRes.emitCopyTo(arg);
                 } else {
-                    statementsOutput += arg.emitFromExprNode(sf, fnCall->argList[i]);
+                    statementsOutput += arg.emitFromExprNode(sf, argNode);
                 }
             }
             statementsOutput += sf->emitSaveCaller();
@@ -100,9 +101,9 @@ void FnDefNode::emit(CompileState &cs) {
         }
 
         if (sNode->kind == StatementNode::Return) {
-            auto ret = StackFrame::Reservation(nullptr, Register::x0); // TODO: types
+            auto ret = StackFrame::Reservation(sNode->type, Register::x0);
             if (sNode->containsFnCalls()) {
-                auto tmpRes = sf->reserveExpr(nullptr); // TODO: types
+                auto tmpRes = sf->reserveExpr(sNode->type);
                 statementsOutput += tmpRes.emitFromExprNode(sf, sNode->expr);
                 statementsOutput += tmpRes.emitCopyTo(ret);
             } else {

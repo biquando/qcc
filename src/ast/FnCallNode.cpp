@@ -1,11 +1,11 @@
 #include "ast/ast.hpp"
 #include "util.hpp"
 
-FnCallNode::FnCallNode(std::string identifier, std::vector<ExprNode *> argList)
-        : identifier(identifier), argList(argList) {}
+FnCallNode::FnCallNode(std::string identifier, TypeNode *retType, std::vector<ExprNode *> argList)
+        : identifier(identifier), retType(retType), argList(argList) {}
 
-FnCallNode::FnCallNode(std::string identifier)
-        : identifier(identifier) {}
+FnCallNode::FnCallNode(std::string identifier, TypeNode *retType)
+        : identifier(identifier), retType(retType) {}
 
 std::ostream &operator<<(std::ostream &os, FnCallNode &node) {
     IndentedStream ios(os);
