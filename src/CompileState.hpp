@@ -7,6 +7,7 @@
 #include <vector>
 #include "builtins.hpp"
 
+class StackFrame;
 class CompileState;
 
 // Declarations
@@ -86,6 +87,8 @@ public:
     StatementNode(std::string identifier, ExprNode *rexpr);
     StatementNode(ExprNode *returnExpr);
     StatementNode(FnCallNode *fnCall);
+
+    std::string emit(StackFrame *sf);
     bool containsFnCalls();
 };
 
@@ -198,10 +201,12 @@ public:
     std::vector<Reservation> exprReservations;
     std::unordered_map<std::string, Reservation> variables;
 
+    CompileState *cs;
+    FnDefNode *fnDef;
     long stackPos = 0;
     long maxStackPos = 0;
 
-    StackFrame();
+    StackFrame(CompileState *cs, FnDefNode *fnDef);
     void incStackPos(long amt);
 
     void addVariable(TypeNode *type, std::string identifier);
@@ -226,7 +231,7 @@ public:
     CompileState(std::ostream &os);
 
     std::vector<StackFrame> frames;
-    void pushFrame();
+    void pushFrame(FnDefNode *fnDef);
     StackFrame *getTopFrame();
     void popFrame();
 

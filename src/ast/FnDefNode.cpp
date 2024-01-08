@@ -44,7 +44,7 @@ void FnDefNode::emit(CompileState &cs) {
         containsFnCalls |= sNode->containsFnCalls();
     }
 
-    cs.pushFrame();
+    cs.pushFrame(this);
     StackFrame *sf = cs.getTopFrame();
     if (containsFnCalls) {
         sf->incStackPos(16);
@@ -68,59 +68,7 @@ void FnDefNode::emit(CompileState &cs) {
     }
 
     for (auto *sNode : block) {
-        if (sNode->kind == StatementNode::FnCall) {
-            FnCallNode *fnCall = sNode->fnCall;
-
-            // Check for builtin functions
-            for (auto &builtin : BUILTIN_FNS) {
-                const std::string &name = builtin.second;
-                if (name == fnCall->identifier) {
-                    cs.usedBuiltinFns.insert(builtin.first);
-                }
-            }
-
-            // TODO: use fnDef types instead of fnCall types, and allow more than 8 arguments
-            for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
-                ExprNode *argNode = fnCall->argList[i];
-                auto arg = StackFrame::Reservation(argNode->type, (Register)i);
-                if (argNode->containsFnCalls()) {
-                    auto tmpRes = sf->reserveExpr(argNode->type);
-                    statementsOutput += tmpRes.emitFromExprNode(sf, argNode);
-                    statementsOutput += tmpRes.emitCopyTo(arg);
-                } else {
-                    statementsOutput += arg.emitFromExprNode(sf, argNode);
-                }
-            }
-            statementsOutput += sf->emitSaveCaller();
-            statementsOutput += "bl _" + fnCall->identifier + "\n";
-            statementsOutput += sf->emitLoadCaller();
-            continue;
-        }
-
-        if (sNode->kind == StatementNode::Return) {
-            auto ret = StackFrame::Reservation(sNode->type, Register::x0);
-            if (sNode->containsFnCalls()) {
-                auto tmpRes = sf->reserveExpr(sNode->type);
-                statementsOutput += tmpRes.emitFromExprNode(sf, sNode->expr);
-                statementsOutput += tmpRes.emitCopyTo(ret);
-            } else {
-                statementsOutput += ret.emitFromExprNode(sf, sNode->expr);
-            }
-            statementsOutput += "b return_" + identifier + "\n";
-            continue;
-        }
-
-        if (sNode->kind == StatementNode::Declaration
-         || sNode->kind == StatementNode::Initialization) {
-            sf->addVariable(sNode->type, sNode->identifier);
-        }
-
-        // assuming not fncall
-        if (sNode->kind == StatementNode::Initialization
-         || sNode->kind == StatementNode::Assignment) {
-            StackFrame::Reservation var = sf->getVariable(sNode->identifier);
-            statementsOutput += var.emitFromExprNode(sf, sNode->expr);
-        }
+        statementsOutput += sNode->emit(sf);
     }
     while (sf->maxStackPos % 16 != 0) {
         sf->maxStackPos += 1;

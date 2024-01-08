@@ -25,6 +25,62 @@ StatementNode::StatementNode(FnCallNode *fnCall)
         : kind(FnCall),
           fnCall(fnCall) {}
 
+std::string StatementNode::emit(StackFrame *sf) {
+    std::string output = "";
+    if (kind == StatementNode::FnCall) {
+        // Check for builtin functions
+        for (auto &builtin : BUILTIN_FNS) {
+            const std::string &name = builtin.second;
+            if (name == fnCall->identifier) {
+                sf->cs->usedBuiltinFns.insert(builtin.first);
+            }
+        }
+
+        // TODO: use fnDef types instead of fnCall types, and allow more than 8 arguments
+        for (int i = 0; i < fnCall->argList.size() && i < 8; i++) {
+            ExprNode *argNode = fnCall->argList[i];
+            auto arg = StackFrame::Reservation(argNode->type, (Register)i);
+            if (argNode->containsFnCalls()) {
+                auto tmpRes = sf->reserveExpr(argNode->type);
+                output += tmpRes.emitFromExprNode(sf, argNode);
+                output += tmpRes.emitCopyTo(arg);
+            } else {
+                output += arg.emitFromExprNode(sf, argNode);
+            }
+        }
+        output += sf->emitSaveCaller();
+        output += "bl _" + fnCall->identifier + "\n";
+        output += sf->emitLoadCaller();
+        goto endStatement;
+    }
+
+    if (kind == StatementNode::Return) {
+        auto ret = StackFrame::Reservation(type, Register::x0);
+        if (containsFnCalls()) {
+            auto tmpRes = sf->reserveExpr(type);
+            output += tmpRes.emitFromExprNode(sf, expr);
+            output += tmpRes.emitCopyTo(ret);
+        } else {
+            output += ret.emitFromExprNode(sf, expr);
+        }
+        output += "b return_" + sf->fnDef->identifier + "\n";
+        goto endStatement;
+    }
+
+    if (kind == StatementNode::Declaration || kind == StatementNode::Initialization) {
+        sf->addVariable(type, identifier);
+    }
+
+    // assuming not fncall
+    if (kind == StatementNode::Initialization || kind == StatementNode::Assignment) {
+        StackFrame::Reservation var = sf->getVariable(identifier);
+        output += var.emitFromExprNode(sf, expr);
+    }
+
+endStatement:
+    return output;
+}
+
 bool StatementNode::containsFnCalls() {
     return kind == FnCall
         || (kind == Initialization || kind == Assignment || kind == Return)

@@ -25,8 +25,8 @@ CompileState::CompileState(std::ostream &os)
     );
 }
 
-void CompileState::pushFrame() {
-    frames.emplace_back();
+void CompileState::pushFrame(FnDefNode *fnDef) {
+    frames.emplace_back(this, fnDef);
 }
 
 StackFrame *CompileState::getTopFrame() {

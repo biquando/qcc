@@ -5,7 +5,9 @@
 #include <vector>
 #include "CompileState.hpp"
 
-StackFrame::StackFrame() {}
+StackFrame::StackFrame(CompileState *cs, FnDefNode *fnDef)
+        : cs(cs),
+          fnDef(fnDef) {}
 
 void StackFrame::incStackPos(long amt) {
     stackPos += amt;
