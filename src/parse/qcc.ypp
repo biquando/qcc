@@ -105,7 +105,7 @@ paramList
     ;
 
 param
-    : type IDENTIFIER { $$ = new ParamNode($1, $2); }
+    : type IDENTIFIER { $$ = new ParamNode($1, $2); drv.cs->setVarType($2, $1); }
     ;
 
 blockWithBraces
