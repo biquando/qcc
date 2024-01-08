@@ -148,7 +148,8 @@ printi_LBB0_10:
         ; Added code
         mov x1, x0
         mov x0, #1
-        mov x2, x9
+        mov x2, #63
+        sub x2, x2, x9
         mov x16, #4
         svc #0
 
