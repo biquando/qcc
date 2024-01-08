@@ -3,6 +3,7 @@ set(QCC_SOURCES
     util.cpp
     CompileState.cpp
     StackFrame.cpp
+    Reservation.cpp
     ast/ast.cpp
     ast/FnDeclNode.cpp
     ast/FnDefNode.cpp
