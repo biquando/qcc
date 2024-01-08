@@ -83,12 +83,12 @@ fnDecl
 fnDef
     : type IDENTIFIER LPAREN RPAREN blockWithBraces {
         $$ = new FnDefNode($1, $2, *$5);
-        drv.cs->addFnDecl($$);
+        drv.cs->addFnDef($$);
         delete $5;
       }
     | type IDENTIFIER LPAREN paramList RPAREN blockWithBraces {
         $$ = new FnDefNode($1, $2, *$4, *$6);
-        drv.cs->addFnDecl($$);
+        drv.cs->addFnDef($$);
         delete $4;
         delete $6;
       }

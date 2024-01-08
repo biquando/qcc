@@ -97,8 +97,7 @@ void CompileState::addFnDef(FnDefNode *fnDef) {
         exit(EXIT_FAILURE);
     }
 
-    if (fnDefs.find(identifier) != fnDefs.end()
-            && *fnDef != *fnDefs.at(identifier)) {
+    if (fnDefs.find(identifier) != fnDefs.end()) {
         std::cerr << "ERROR: Tried to redefine function " << identifier << '\n';
         exit(EXIT_FAILURE);
     }
