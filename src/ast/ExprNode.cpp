@@ -67,7 +67,7 @@ bool ExprNode::containsFnCalls() {
 
 std::ostream &operator<<(std::ostream &os, ExprNode &node) {
     IndentedStream ios(os);
-    os << "ExprNode (" << node.type << ')';
+    os << "ExprNode (" << *(node.type) << ')';
     switch (node.kind) {
         case ExprNode::Literal:
             os << " (" << *(node.literal) << ')';

@@ -72,7 +72,7 @@ void FnDefNode::emit(CompileState &cs) {
         sf->maxStackPos += 1;
     }
 
-    if (sf->maxStackPos > 0) {
+    if (sf->maxStackPos > 0 || containsFnCalls) {
         ios << "sub sp, sp, #" << sf->maxStackPos + fnCallOffset << '\n';
     }
     if (containsFnCalls) {
@@ -86,7 +86,7 @@ void FnDefNode::emit(CompileState &cs) {
     if (containsFnCalls) {
         ios << "ldp fp, lr, [sp, #" << sf->maxStackPos << "]\n";
     }
-    if (sf->maxStackPos > 0) {
+    if (sf->maxStackPos > 0 || containsFnCalls) {
         ios << "add sp, sp, #" << sf->maxStackPos + fnCallOffset << '\n';
     }
 
