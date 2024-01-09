@@ -2,17 +2,10 @@
 #include "util.hpp"
 #include "CompileState.hpp"
 
-FnDefNode::FnDefNode(TypeNode *returnType,
-              std::string identifier,
-              std::vector<StatementNode *> block)
-        : FnDeclNode(returnType, identifier),
-          block(block) {}
-
-FnDefNode::FnDefNode(TypeNode *returnType,
-              std::string identifier,
-              std::vector<ParamNode *> paramList,
-              std::vector<StatementNode *> block)
-        : FnDeclNode(returnType, identifier, paramList),
+FnDefNode::FnDefNode(FnDeclNode fnDeclNode, std::vector<StatementNode *> block)
+        : FnDeclNode(fnDeclNode.returnType,
+                     fnDeclNode.identifier,
+                     fnDeclNode.paramList),
           block(block) {}
 
 std::ostream &operator<<(std::ostream &os, FnDefNode &node) {

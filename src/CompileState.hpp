@@ -40,15 +40,7 @@ public:
 class FnDefNode : public FnDeclNode {
 public:
     std::vector<StatementNode *> block;
-
-    FnDefNode(TypeNode *returnType,
-              std::string identifier,
-              std::vector<StatementNode *> block);
-    FnDefNode(TypeNode *returnType,
-              std::string identifier,
-              std::vector<ParamNode *> paramList,
-              std::vector<StatementNode *> block);
-
+    FnDefNode(FnDeclNode fnDeclNode, std::vector<StatementNode *> block);
     void emit(CompileState &cs);
 };
 

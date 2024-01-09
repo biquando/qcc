@@ -45,7 +45,7 @@
 %token <long> INT_LITERAL
 %token <char> CHAR_LITERAL
 
-%type <FnDeclNode *> fnDecl
+%type <FnDeclNode *> fnDecl fnSignature
 %type <FnDefNode *> fnDef
 %type <TypeNode *> type
 %type <ParamNode *> param
@@ -76,11 +76,15 @@ file
     ;
 
 fnDecl
-    : type IDENTIFIER LPAREN RPAREN SEMICOLON {
+    : fnSignature SEMICOLON { $$ = $1; }
+    ;
+
+fnSignature
+    : type IDENTIFIER LPAREN RPAREN {
         $$ = new FnDeclNode($1, $2);
         drv.cs->addFnDecl($$);
       }
-    | type IDENTIFIER LPAREN paramList RPAREN SEMICOLON {
+    | type IDENTIFIER LPAREN paramList RPAREN {
         $$ = new FnDeclNode($1, $2, *$4);
         drv.cs->addFnDecl($$);
         delete $4;
@@ -88,16 +92,10 @@ fnDecl
     ;
 
 fnDef
-    : type IDENTIFIER LPAREN RPAREN blockWithBraces {
-        $$ = new FnDefNode($1, $2, *$5);
+    : fnSignature blockWithBraces {
+        $$ = new FnDefNode(*$1, *$2);
         drv.cs->addFnDef($$);
-        delete $5;
-      }
-    | type IDENTIFIER LPAREN paramList RPAREN blockWithBraces {
-        $$ = new FnDefNode($1, $2, *$4, *$6);
-        drv.cs->addFnDef($$);
-        delete $4;
-        delete $6;
+        delete $2;
       }
     ;
 
