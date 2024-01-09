@@ -68,6 +68,9 @@ bool IfNode::containsFnCalls() {
     for (auto *statement : block) {
         if (statement->containsFnCalls()) { return true; }
     }
+    for (auto *statement : elseBlock) {
+        if (statement->containsFnCalls()) { return true; }
+    }
     return false;
 }
 
