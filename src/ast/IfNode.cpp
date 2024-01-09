@@ -1,6 +1,8 @@
+#include <iostream>
 #include <string>
 #include "ast/ast.hpp"
 #include "CompileState.hpp"
+#include "util.hpp"
 
 IfNode::IfNode(ExprNode *condition)
         : StatementNode(If),
@@ -67,4 +69,27 @@ bool IfNode::containsFnCalls() {
         if (statement->containsFnCalls()) { return true; }
     }
     return false;
+}
+
+std::ostream &operator<<(std::ostream &os, IfNode &node) {
+    IndentedStream ios(os);
+    os << "IfNode (\n";
+    ios << *(node.condition);
+
+    os << "\n) {";
+    if (!node.block.empty()) {
+        ios << '\n';
+    }
+    for (auto *statement : node.block) {
+        ios << *statement << '\n';
+    }
+
+    os << "} else {";
+    if (!node.elseBlock.empty()) {
+        ios << '\n';
+    }
+    for (auto *statement : node.elseBlock) {
+        ios << *statement << '\n';
+    }
+    return os << '}';
 }

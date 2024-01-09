@@ -103,7 +103,9 @@ bool StatementNode::isDerived() {
 
 std::ostream &operator<<(std::ostream &os, StatementNode &node) {
     IndentedStream ios(os);
-    os << "StatementNode (";
+    if (!node.isDerived()) {
+        os << "StatementNode (";
+    }
     switch (node.kind) {
         case StatementNode::Declaration:
             os << "Declaration): (";
@@ -125,6 +127,10 @@ std::ostream &operator<<(std::ostream &os, StatementNode &node) {
         case StatementNode::FnCall:
             os << "FnCall):";
             ios << '\n' << *(node.fnCall);
+            break;
+        case StatementNode::If:
+            IfNode *ifNode = static_cast<IfNode *>(&node);
+            os << *ifNode;
             break;
     }
     return os;

@@ -93,8 +93,6 @@ public:
 
     virtual std::string emit(StackFrame *sf);
     virtual bool containsFnCalls();
-
-private:
     bool isDerived();
 };
 
@@ -165,6 +163,7 @@ std::ostream &operator<<(std::ostream &os, FnDefNode &node);
 std::ostream &operator<<(std::ostream &os, TypeNode &node);
 std::ostream &operator<<(std::ostream &os, ParamNode &node);
 std::ostream &operator<<(std::ostream &os, StatementNode &node);
+std::ostream &operator<<(std::ostream &os, IfNode &node);
 std::ostream &operator<<(std::ostream &os, FnCallNode &node);
 std::ostream &operator<<(std::ostream &os, ExprNode &node);
 std::ostream &operator<<(std::ostream &os, LiteralNode &node);
