@@ -26,7 +26,7 @@
     typedef std::vector<StatementNode *> Block;
 }
 
-%token ASSIGN COMMA LBRACE RBRACE SEMICOLON RETURN IF
+%token ASSIGN COMMA LBRACE RBRACE SEMICOLON RETURN IF WHILE
 %precedence PREC_THEN
 %precedence ELSE
 %left <BuiltinOperator> OP_BIT_OR
@@ -51,6 +51,7 @@
 %type <ParamNode *> param
 %type <StatementNode *> statement declaration initialization assignment return
 %type <IfNode *> if
+%type <WhileNode *> while
 %type <FnCallNode *> fnCall
 %type <ExprNode *> expr
 %type <LiteralNode *> literal
@@ -129,6 +130,7 @@ statement
     | return SEMICOLON { $$ = $1; }
     | fnCall SEMICOLON { $$ = new StatementNode($1); }
     | if { $$ = $1; }
+    | while { $$ = $1; }
     ;
 
 declaration
@@ -163,6 +165,12 @@ if
         delete $7;
       }
     ;
+
+while
+    : WHILE LPAREN expr RPAREN statementBlock {
+        $$ = new WhileNode($3, *$5);
+        delete $5;
+      }
 
 statementBlock
     : statement { $$ = new std::vector<StatementNode *>{$1}; }

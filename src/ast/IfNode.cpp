@@ -4,10 +4,6 @@
 #include "CompileState.hpp"
 #include "util.hpp"
 
-IfNode::IfNode(ExprNode *condition)
-        : StatementNode(If),
-          condition(condition) {}
-
 IfNode::IfNode(ExprNode *condition, std::vector<StatementNode *> block)
         : StatementNode(If),
           condition(condition),
@@ -22,16 +18,18 @@ IfNode::IfNode(ExprNode *condition,
           elseBlock(elseBlock) {}
 
 /*
-	ldr x16, [fp, #-24] ; where fp,#-24 is the condition expression
-	cmp x16, #0
-	cset x16, eq
-	tbnz x16, #0, IF_FALSE_0
-	b IF_TRUE_0
-	IF_TRUE_0:
-	b IF_EXIT_0
-	IF_FALSE_0:
-	b IF_EXIT_0
-	IF_EXIT_0:
+    ldr x16, [fp, #-24] ; where fp,#-24 is the condition expression
+    cmp x16, #0
+    cset x16, eq
+    tbnz x16, #0, IF_FALSE_0
+    b IF_TRUE_0
+IF_TRUE_0:
+    ; (run if true)
+    b IF_EXIT_0
+IF_FALSE_0:
+    ; (run if false)
+    b IF_EXIT_0
+IF_EXIT_0:
 */
 std::string IfNode::emit(StackFrame *sf) {
     std::string output = "";

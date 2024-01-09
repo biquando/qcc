@@ -68,7 +68,7 @@ public:
     enum StatementKind {
         Declaration, Initialization, Assignment, Return, FnCall,
         // Derived classes must be last
-        If,
+        If, While,
     } kind;
 
     TypeNode *type;             // Declaration/Initialization
@@ -93,11 +93,19 @@ public:
     ExprNode *condition;
     std::vector<StatementNode *> block;
     std::vector<StatementNode *> elseBlock;
-    IfNode(ExprNode *condition);
     IfNode(ExprNode *condition, std::vector<StatementNode *> block);
     IfNode(ExprNode *condition,
                    std::vector<StatementNode *> block,
                    std::vector<StatementNode *> elseBlock);
+    virtual std::string emit(StackFrame *sf) override;
+    virtual bool containsFnCalls() override;
+};
+
+class WhileNode : public StatementNode {
+public:
+    ExprNode *condition;
+    std::vector<StatementNode *> block;
+    WhileNode(ExprNode *condition, std::vector<StatementNode *> block);
     virtual std::string emit(StackFrame *sf) override;
     virtual bool containsFnCalls() override;
 };
@@ -262,6 +270,7 @@ public:
     void addFnDecl(FnDeclNode *fnDecl);
     void addFnDef(FnDefNode *fnDef);
 
-    // Number of if statements (for labeling)
+    // Number of if/while statements (for labeling)
     unsigned long numIfs = 0;
+    unsigned long numWhiles = 0;
 };
