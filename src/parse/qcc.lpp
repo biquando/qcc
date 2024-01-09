@@ -34,9 +34,10 @@ void  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Void, loc);  }
 int   { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Int, loc);  }
 char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char, loc); }
 
- /* Identifiers/Return */
-"return"     { return yy::parser::make_RETURN(loc); }
-{IDENTIFIER} { return yy::parser::make_IDENTIFIER(yytext, loc); }
+ /* Keywords */
+"return" { return yy::parser::make_RETURN(loc); }
+"if"     { return yy::parser::make_IF(loc); }
+"else"   { return yy::parser::make_ELSE(loc); }
 
  /* Literals */
 {INT}      { return yy::parser::make_INT_LITERAL(strtol(yytext, NULL, 0), loc); }
@@ -68,6 +69,9 @@ char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char, loc); }
 ";" { return yy::parser::make_SEMICOLON(loc); }
 "(" { return yy::parser::make_LPAREN   (loc); }
 ")" { return yy::parser::make_RPAREN   (loc); }
+
+ /* Identifiers */
+{IDENTIFIER} { return yy::parser::make_IDENTIFIER(yytext, loc); }
 
  /* Other characters */
 [ \t\r]+ { loc.step(); }

@@ -46,9 +46,7 @@ void FnDefNode::emit(CompileState &cs) {
 
     cs.pushFrame(this);
     StackFrame *sf = cs.getTopFrame();
-    if (containsFnCalls) {
-        sf->incStackPos(16);
-    }
+    const long fnCallOffset = containsFnCalls ? 16 : 0;
 
     std::string statementsOutput = "";
     for (int i = 0; i < paramList.size() && i < 8; i++) { // TODO: support more than 8 arguments
@@ -75,20 +73,21 @@ void FnDefNode::emit(CompileState &cs) {
     }
 
     if (sf->maxStackPos > 0) {
-        ios << "sub sp, sp, #" << sf->maxStackPos << '\n';
+        ios << "sub sp, sp, #" << sf->maxStackPos + fnCallOffset << '\n';
     }
     if (containsFnCalls) {
-        ios << "stp fp, lr, [sp, #" << sf->maxStackPos - 16 << "]\n";
+        ios << "stp fp, lr, [sp, #" << sf->maxStackPos << "]\n"
+            << "sub fp, fp, #16\n";
     }
 
     ios << statementsOutput;
     cs.os << "return_" << identifier << ":\n";
 
     if (containsFnCalls) {
-        ios << "ldp fp, lr, [sp, #" << sf->maxStackPos - 16 << "]\n";
+        ios << "ldp fp, lr, [sp, #" << sf->maxStackPos << "]\n";
     }
     if (sf->maxStackPos > 0) {
-        ios << "add sp, sp, #" << sf->maxStackPos << '\n';
+        ios << "add sp, sp, #" << sf->maxStackPos + fnCallOffset << '\n';
     }
 
     cs.popFrame();

@@ -25,6 +25,16 @@ StatementNode::StatementNode(FnCallNode *fnCall)
         : kind(FnCall),
           fnCall(fnCall) {}
 
+StatementNode::StatementNode(StatementKind derivedKind)
+        : kind(derivedKind) {
+    if (!isDerived()) {
+        std::cerr << "COMPILER ERROR: Tried to initialize StatementNode to "
+                     "a non-derived kind, but didn't use the appropriate "
+                     "constructor\n";
+        exit(EXIT_FAILURE);
+    }
+}
+
 std::string StatementNode::emit(StackFrame *sf) {
     std::string output = "";
     if (kind == StatementNode::FnCall) {
@@ -85,6 +95,10 @@ bool StatementNode::containsFnCalls() {
     return kind == FnCall
         || (kind == Initialization || kind == Assignment || kind == Return)
             && expr->containsFnCalls();
+}
+
+bool StatementNode::isDerived() {
+    return kind >= If;
 }
 
 std::ostream &operator<<(std::ostream &os, StatementNode &node) {

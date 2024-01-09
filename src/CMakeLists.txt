@@ -10,6 +10,7 @@ set(QCC_SOURCES
     ast/TypeNode.cpp
     ast/ParamNode.cpp
     ast/StatementNode.cpp
+    ast/IfNode.cpp
     ast/FnCallNode.cpp
     ast/ExprNode.cpp
     ast/LiteralNode.cpp

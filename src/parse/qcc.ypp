@@ -23,9 +23,12 @@
 %param {Driver &drv}
 %code {
     #include "parse/driver.hpp"
+    typedef std::vector<StatementNode *> Block;
 }
 
-%token ASSIGN COMMA LBRACE RBRACE SEMICOLON RETURN
+%token ASSIGN COMMA LBRACE RBRACE SEMICOLON RETURN IF
+%precedence PREC_THEN
+%precedence ELSE
 %left <BuiltinOperator> OP_BIT_OR
 %left <BuiltinOperator> OP_BIT_XOR
 %left <BuiltinOperator> OP_BIT_AND
@@ -47,12 +50,13 @@
 %type <TypeNode *> type
 %type <ParamNode *> param
 %type <StatementNode *> statement declaration initialization assignment return
+%type <IfNode *> if
 %type <FnCallNode *> fnCall
 %type <ExprNode *> expr
 %type <LiteralNode *> literal
 
 %type <std::vector<ParamNode *> *> paramList
-%type <std::vector<StatementNode *> *> block blockWithBraces
+%type <std::vector<StatementNode *> *> block blockWithBraces statementBlock
 %type <std::vector<ExprNode *> *> argList
 
 %%
@@ -117,15 +121,16 @@ blockWithBraces
 
 block
     : { $$ = new std::vector<StatementNode *>(); }
-    | block statement SEMICOLON { $1->push_back($2); $$ = $1; }
+    | block statement { $1->push_back($2); $$ = $1; }
     ;
 
 statement
-    : declaration { $$ = $1; }
-    | initialization { $$ = $1; }
-    | assignment { $$ = $1; }
-    | return { $$ = $1; }
-    | fnCall { $$ = new StatementNode($1); }
+    : declaration SEMICOLON { $$ = $1; }
+    | initialization SEMICOLON { $$ = $1; }
+    | assignment SEMICOLON { $$ = $1; }
+    | return SEMICOLON { $$ = $1; }
+    | fnCall SEMICOLON { $$ = new StatementNode($1); }
+    | if { $$ = $1; }
     ;
 
 declaration
@@ -147,6 +152,23 @@ return
 fnCall
     : IDENTIFIER LPAREN argList RPAREN { $$ = new FnCallNode($1, drv.cs->getFnDecl($1), *$3); delete $3; }
     | IDENTIFIER LPAREN RPAREN { $$ = new FnCallNode($1, drv.cs->getFnDecl($1)); }
+    ;
+
+if
+    : IF LPAREN expr RPAREN statementBlock {
+        $$ = new IfNode($3, *$5);
+        delete $5;
+      } %prec PREC_THEN
+    | IF LPAREN expr RPAREN statementBlock ELSE statementBlock {
+        $$ = new IfNode($3, *$5, *$7);
+        delete $5;
+        delete $7;
+      }
+    ;
+
+statementBlock
+    : statement { $$ = new std::vector<StatementNode *>{$1}; }
+    | blockWithBraces { $$ = $1; }
     ;
 
 argList

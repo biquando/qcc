@@ -74,7 +74,9 @@ public:
 class StatementNode {
 public:
     enum StatementKind {
-        Declaration, Initialization, Assignment, Return, FnCall
+        Declaration, Initialization, Assignment, Return, FnCall,
+        // Derived classes must be last
+        If,
     } kind;
 
     TypeNode *type;             // Declaration/Initialization
@@ -87,9 +89,27 @@ public:
     StatementNode(std::string identifier, ExprNode *rexpr);
     StatementNode(ExprNode *returnExpr);
     StatementNode(FnCallNode *fnCall);
+    StatementNode(StatementKind derivedKind);
 
-    std::string emit(StackFrame *sf);
-    bool containsFnCalls();
+    virtual std::string emit(StackFrame *sf);
+    virtual bool containsFnCalls();
+
+private:
+    bool isDerived();
+};
+
+class IfNode : public StatementNode {
+public:
+    ExprNode *condition;
+    std::vector<StatementNode *> block;
+    std::vector<StatementNode *> elseBlock;
+    IfNode(ExprNode *condition);
+    IfNode(ExprNode *condition, std::vector<StatementNode *> block);
+    IfNode(ExprNode *condition,
+                   std::vector<StatementNode *> block,
+                   std::vector<StatementNode *> elseBlock);
+    virtual std::string emit(StackFrame *sf) override;
+    virtual bool containsFnCalls() override;
 };
 
 class FnCallNode {
@@ -230,20 +250,27 @@ public:
     unsigned indent = 8;
     CompileState(std::ostream &os);
 
+    // Stack frames
     std::vector<StackFrame> frames;
     void pushFrame(FnDefNode *fnDef);
     StackFrame *getTopFrame();
     void popFrame();
 
+    // Keep track of which builtins to insert
     std::unordered_set<BuiltinFn> usedBuiltinFns;
 
+    // Variable types
     std::unordered_map<std::string, TypeNode *> *varTypes;
     TypeNode *getVarType(std::string identifier);
     void setVarType(std::string identifier, TypeNode *type);
 
+    // Function declarations/definitions
     std::unordered_map<std::string, FnDeclNode *> fnDecls;
     std::unordered_map<std::string, FnDefNode *> fnDefs;
     FnDeclNode *getFnDecl(std::string identifier);
     void addFnDecl(FnDeclNode *fnDecl);
     void addFnDef(FnDefNode *fnDef);
+
+    // Number of if statements (for labeling)
+    unsigned long numIfs = 0;
 };
