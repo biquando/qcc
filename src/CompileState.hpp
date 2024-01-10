@@ -164,6 +164,7 @@ std::ostream &operator<<(std::ostream &os, TypeNode &node);
 std::ostream &operator<<(std::ostream &os, ParamNode &node);
 std::ostream &operator<<(std::ostream &os, StatementNode &node);
 std::ostream &operator<<(std::ostream &os, IfNode &node);
+std::ostream &operator<<(std::ostream &os, WhileNode &node);
 std::ostream &operator<<(std::ostream &os, FnCallNode &node);
 std::ostream &operator<<(std::ostream &os, ExprNode &node);
 std::ostream &operator<<(std::ostream &os, LiteralNode &node);

@@ -54,3 +54,18 @@ bool WhileNode::containsFnCalls() {
     }
     return false;
 }
+
+std::ostream &operator<<(std::ostream &os, WhileNode &node) {
+    IndentedStream ios(os);
+    os << "WhileNode (\n";
+    ios << *(node.condition);
+
+    os << "\n) {";
+    if (!node.block.empty()) {
+        ios << '\n';
+    }
+    for (auto *statement : node.block) {
+        ios << *statement << '\n';
+    }
+    return os << '}';
+}

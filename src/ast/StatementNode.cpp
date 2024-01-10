@@ -128,10 +128,16 @@ std::ostream &operator<<(std::ostream &os, StatementNode &node) {
             os << "FnCall):";
             ios << '\n' << *(node.fnCall);
             break;
-        case StatementNode::If:
+        case StatementNode::If: {
             IfNode *ifNode = static_cast<IfNode *>(&node);
             os << *ifNode;
             break;
+        }
+        case StatementNode::While: {
+            WhileNode *whileNode = static_cast<WhileNode *>(&node);
+            os << *whileNode;
+            break;
+        }
     }
     return os;
 }
