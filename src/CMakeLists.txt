@@ -24,8 +24,8 @@ find_package(BISON REQUIRED)
 set(PARSE_OUTPUT "${CMAKE_BINARY_DIR}/parse")
 file(MAKE_DIRECTORY "${PARSE_OUTPUT}")
 
-flex_target(QCCLexer parse/qcc.lpp "${PARSE_OUTPUT}/qcc.l.cpp")
-bison_target(QCCParser parse/qcc.ypp "${PARSE_OUTPUT}/qcc.y.cpp"
+flex_target(QCCLexer parse/qcc.l "${PARSE_OUTPUT}/qcc.l.cpp")
+bison_target(QCCParser parse/qcc.y "${PARSE_OUTPUT}/qcc.y.cpp"
              DEFINES_FILE "${PARSE_OUTPUT}/qcc.y.hpp"
              COMPILE_FLAGS "-Wcounterexamples")
 add_flex_bison_dependency(QCCLexer QCCParser)
