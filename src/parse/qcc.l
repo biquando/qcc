@@ -29,6 +29,9 @@ yy::location &loc = drv.location;
 loc.step();
 %}
 
+ /* Comments */
+"//".* { loc.step(); }
+
  /* Built-in types */
 void  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Void, loc);  }
 int   { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Int, loc);  }
