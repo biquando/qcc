@@ -37,7 +37,6 @@
 %left <BuiltinOperator> OP_PLUS OP_MINUS
 %left <BuiltinOperator> OP_STAR OP_FSLASH
 %precedence <BuiltinOperator> OP_NOT OP_BIT_NOT
-%precedence PREC_NEG
 %left LPAREN RPAREN
 
 %token <BuiltinType> BUILTIN_TYPE
@@ -196,12 +195,16 @@ expr
     | expr OP_GT      expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_LE      expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_GE      expr { $$ = new ExprNode($2, $1, $3); }
-    | OP_MINUS        expr { $$ = new ExprNode($1, $2); } %prec PREC_NEG
+    | OP_MINUS        expr { $$ = new ExprNode($1, $2); }
     | OP_NOT          expr { $$ = new ExprNode($1, $2); }
     | OP_BIT_NOT      expr { $$ = new ExprNode($1, $2); }
     | expr OP_BIT_AND expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_BIT_OR  expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_BIT_XOR expr { $$ = new ExprNode($2, $1, $3); }
+    | OP_BIT_AND IDENTIFIER {
+        $$ = new ExprNode($1, new ExprNode($2, drv.cs->getVarType($2)));
+    }
+    | OP_STAR         expr { $$ = new ExprNode($1, $2); }
     | LPAREN expr RPAREN { $$ = $2; }
     ;
 

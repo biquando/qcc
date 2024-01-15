@@ -188,6 +188,8 @@ std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
             output += "neg " + toStr(dst.location.reg) + ", "
                     + toStr(src.location.reg) + "\n";
             break;
+        case BuiltinOperator::Star:
+            break;
         case BuiltinOperator::Not:
             output += "cmp " + toStr(src.location.reg) + ", #0\n";
             output += "cset " + toStr(dst.location.reg) + ", eq\n";
@@ -199,6 +201,27 @@ std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
         default:
             break;
     }
+
+    output += dst.emitCopyTo(res);
+    return output;
+}
+
+std::string StackFrame::emitDereference(Reservation res, std::string identifier) {
+    Reservation var = getVariable(identifier);
+    long stackOffset = var.location.stackOffset;
+    std::string output = "";
+    Reservation dst;
+
+    if (res.kind == Reservation::Reg) {
+        dst = res;
+    } else {
+        dst = Reservation(res.type, Register::x16);
+    }
+
+    output += "mov " + toStr(dst.location.reg) + ", #"
+            + toStr(stackOffset) + "\n";
+    output += "sub " + toStr(dst.location.reg) + ", fp, "
+            + toStr(dst.location.reg) + "\n";
 
     output += dst.emitCopyTo(res);
     return output;

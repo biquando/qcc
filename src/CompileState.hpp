@@ -240,6 +240,7 @@ public:
                              Reservation opr1, Reservation opr2);
     std::string emitUnaryOp(BuiltinOperator op, Reservation res,
                             Reservation opr);
+    std::string emitDereference(Reservation res, std::string identifier);
     std::string emitSaveCaller();
     std::string emitLoadCaller();
 };

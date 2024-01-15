@@ -172,7 +172,9 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             break;
         case ExprNode::UnaryOp:
             output += emitFromExprNode(sf, expr->opr);
-            output += sf->emitUnaryOp(expr->builtinOperator, *this, *this);
+            output += expr->builtinOperator == BuiltinOperator::BitAnd
+                    ? sf->emitDereference(*this, expr->opr->identifier)
+                    : sf->emitUnaryOp(expr->builtinOperator, *this, *this);
             break;
     }
     return output;

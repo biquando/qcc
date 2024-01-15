@@ -11,6 +11,10 @@ std::string toStr(long l) {
     return std::to_string(l);
 }
 
+std::ostream &operator<<(std::ostream &os, Register &reg) {
+    return os << 'x' << (int)reg;
+}
+
 CompileState::CompileState(std::ostream &os)
         : os(os),
           varTypes(new std::unordered_map<std::string, TypeNode *>()) {
