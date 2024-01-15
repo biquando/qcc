@@ -77,17 +77,25 @@ file
     ;
 
 fnDecl
-    : fnSignature SEMICOLON { $$ = $1; }
+    : fnSignature SEMICOLON {
+        $$ = $1;
+        drv.cs->removeFrame($1->identifier);
+        drv.currFrame = nullptr;
+      }
     ;
 
 fnSignature
     : type IDENTIFIER LPAREN RPAREN {
         $$ = new FnDeclNode($1, $2);
         drv.cs->addFnDecl($$);
+        drv.cs->addFrame($2);
+        drv.currFrame = drv.cs->getFrame($2);
       }
     | type IDENTIFIER LPAREN paramList RPAREN {
         $$ = new FnDeclNode($1, $2, *$4);
         drv.cs->addFnDecl($$);
+        drv.cs->addFrame($2);
+        drv.currFrame = drv.cs->getFrame($2);
         delete $4;
       }
     ;
@@ -96,6 +104,7 @@ fnDef
     : fnSignature blockWithBraces {
         $$ = new FnDefNode(*$1, *$2);
         drv.cs->addFnDef($$);
+        drv.currFrame = nullptr;
         delete $2;
       }
     ;
@@ -111,7 +120,7 @@ paramList
     ;
 
 param
-    : type IDENTIFIER { $$ = new ParamNode($1, $2); drv.cs->setVarType($2, $1); }
+    : type IDENTIFIER { $$ = new ParamNode($1, $2); }
     ;
 
 blockWithBraces
@@ -134,11 +143,11 @@ statement
     ;
 
 declaration
-    : type IDENTIFIER { $$ = new StatementNode($1, $2); drv.cs->setVarType($2, $1); }
+    : type IDENTIFIER { $$ = new StatementNode($1, $2); drv.currFrame->addVariable($1, $2); }
     ;
 
 initialization
-    : type IDENTIFIER ASSIGN expr { $$ = new StatementNode($1, $2, $4); drv.cs->setVarType($2, $1); }
+    : type IDENTIFIER ASSIGN expr { $$ = new StatementNode($1, $2, $4); drv.currFrame->addVariable($1, $2); }
     ;
 
 assignment
@@ -184,7 +193,7 @@ argList
 
 expr
     : literal { $$ = new ExprNode($1); }
-    | IDENTIFIER { $$ = new ExprNode($1, drv.cs->getVarType($1)); }
+    | IDENTIFIER { $$ = new ExprNode($1, drv.currFrame->getVariableType($1); }
     | fnCall { $$ = new ExprNode($1); }
     | expr OP_PLUS    expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_MINUS   expr { $$ = new ExprNode($2, $1, $3); }

@@ -37,8 +37,7 @@ void FnDefNode::emit(CompileState &cs) {
         containsFnCalls |= sNode->containsFnCalls();
     }
 
-    cs.pushFrame(this);
-    StackFrame *sf = cs.getTopFrame();
+    StackFrame *sf = cs.frames.at(identifier);
     const long fnCallOffset = containsFnCalls ? 16 : 0;
 
     std::string statementsOutput = "";
@@ -83,7 +82,6 @@ void FnDefNode::emit(CompileState &cs) {
         ios << "add sp, sp, #" << sf->maxStackPos + fnCallOffset << '\n';
     }
 
-    cs.popFrame();
     ios << "ret\n";
     cs.os << '\n';
 }

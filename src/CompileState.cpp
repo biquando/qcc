@@ -12,8 +12,7 @@ std::string toStr(long l) {
 }
 
 CompileState::CompileState(std::ostream &os)
-        : os(os),
-          varTypes(new std::unordered_map<std::string, TypeNode *>()) {
+        : os(os) {
 
     // Add builtin function signatures
     addFnDecl(new FnDeclNode(
@@ -25,33 +24,24 @@ CompileState::CompileState(std::ostream &os)
     );
 }
 
-void CompileState::pushFrame(FnDefNode *fnDef) {
-    frames.emplace_back(this, fnDef);
+StackFrame *CompileState::getFrame(std::string identifier) {
+    return frames.at(identifier);
 }
 
-StackFrame *CompileState::getTopFrame() {
-    return &frames.back();
-}
-
-void CompileState::popFrame() {
-    frames.pop_back();
-}
-
-TypeNode *CompileState::getVarType(std::string identifier) {
-    if (varTypes->find(identifier) == varTypes->end()) {
-        std::cerr << "ERROR: Couldn't find the type of " << identifier << '\n';
-        exit(EXIT_FAILURE);
-    }
-    return (*varTypes)[identifier];
-}
-
-void CompileState::setVarType(std::string identifier, TypeNode *type) {
-    if (varTypes->find(identifier) != varTypes->end()) {
-        std::cerr << "ERROR: Tried to set type of alread-defined variable "
+void CompileState::addFrame(std::string identifier) {
+    if (frames.find(identifier) != frames.end()) {
+        std::cerr << "ERROR: Tried to add already-existing stack frame "
                   << identifier << '\n';
         exit(EXIT_FAILURE);
     }
-    (*varTypes)[identifier] = type;
+
+    StackFrame *frame = new StackFrame(this);
+    frames[identifier] = frame;
+}
+
+void CompileState::removeFrame(std::string identifier) {
+    delete getFrame(identifier);
+    frames.erase(identifier);
 }
 
 FnDeclNode *CompileState::getFnDecl(std::string identifier) {

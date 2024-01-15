@@ -5,9 +5,8 @@
 #include <vector>
 #include "CompileState.hpp"
 
-StackFrame::StackFrame(CompileState *cs, FnDefNode *fnDef)
-        : cs(cs),
-          fnDef(fnDef) {}
+StackFrame::StackFrame(CompileState *cs)
+        : cs(cs) {}
 
 void StackFrame::incStackPos(long amt) {
     stackPos += amt;
@@ -16,18 +15,58 @@ void StackFrame::incStackPos(long amt) {
     }
 }
 
+void StackFrame::incScope() {
+    variables.emplace_back();
+}
+
+void StackFrame::decScope() {
+    variables.pop_back();
+}
+
 void StackFrame::addVariable(TypeNode *type, std::string identifier) {
+    if (variables.back().find(identifier) != variables.back().end()) {
+        std::cerr << "ERROR: Variable " << identifier << " already declared\n";
+        exit(EXIT_FAILURE);
+    }
+
     Reservation res = reserveVariable(type);
-    variables[identifier] = res;
+    variables.back()[identifier] = res;
 }
 
 StackFrame::Reservation StackFrame::getVariable(std::string identifier) {
-    if (variables.find(identifier) == variables.end()) { // TEMP
-        std::cerr << "ERROR: Undefined variable: "
-                  << identifier << '\n';
-        exit(EXIT_FAILURE);
+    for (int i = variables.size() - 1; i >= 0; i--) {
+        if (variables.back().find(identifier) == variables.back().end()) {
+            continue;
+        }
+        return variables.back().at(identifier);
     }
-    return variables[identifier];
+
+    std::cerr << "ERROR: Undefined variable: " << identifier << '\n';
+    exit(EXIT_FAILURE);
+}
+
+void StackFrame::addParam(ParamNode *param) {
+    params.push_back(param);
+}
+
+TypeNode *StackFrame::getVariableType(std::string identifier) {
+    // Check variables
+    for (int i = variables.size() - 1; i >= 0; i--) {
+        if (variables.back().find(identifier) == variables.back().end()) {
+            continue;
+        }
+        return variables.back().at(identifier).type;
+    }
+
+    // Check params
+    for (auto *param : params) {
+        if (param->identifier == identifier) {
+            return param->type;
+        }
+    }
+
+    std::cerr << "ERROR: Undefined variable: " << identifier << '\n';
+    exit(EXIT_FAILURE);
 }
 
 StackFrame::Reservation StackFrame::reserveVariable(TypeNode *type) {

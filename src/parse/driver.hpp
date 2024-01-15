@@ -17,6 +17,7 @@ public:
     yy::location location;
     std::string file;
     CompileState *cs;
+    StackFrame *currFrame = nullptr;
 
     std::vector<FnDefNode *> fnDefNodes;
     int res = 0;

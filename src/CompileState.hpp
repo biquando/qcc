@@ -219,18 +219,23 @@ public:
     };
     std::vector<Reservation> variableReservations;
     std::vector<Reservation> exprReservations;
-    std::unordered_map<std::string, Reservation> variables;
+    std::vector<std::unordered_map<std::string, Reservation>> variables;
+    std::vector<ParamNode *> params;
 
     CompileState *cs;
-    FnDefNode *fnDef;
     long stackPos = 0;
     long maxStackPos = 0;
 
-    StackFrame(CompileState *cs, FnDefNode *fnDef);
+    StackFrame(CompileState *cs);
     void incStackPos(long amt);
+
+    void incScope();
+    void decScope();
 
     void addVariable(TypeNode *type, std::string identifier);
     Reservation getVariable(std::string identifier);
+    void addParam(ParamNode *param);
+    TypeNode *getVariableType(std::string identifier);
 
     Reservation reserveVariable(TypeNode *type);
     Reservation reserveExpr(TypeNode *type);
@@ -251,18 +256,13 @@ public:
     CompileState(std::ostream &os);
 
     // Stack frames
-    std::vector<StackFrame> frames;
-    void pushFrame(FnDefNode *fnDef);
-    StackFrame *getTopFrame();
-    void popFrame();
+    std::unordered_map<std::string, StackFrame *> frames;
+    StackFrame *getFrame(std::string identifier);
+    void addFrame(std::string identifier);
+    void removeFrame(std::string identifier);
 
     // Keep track of which builtins to insert
     std::unordered_set<BuiltinFn> usedBuiltinFns;
-
-    // Variable types
-    std::unordered_map<std::string, TypeNode *> *varTypes;
-    TypeNode *getVarType(std::string identifier);
-    void setVarType(std::string identifier, TypeNode *type);
 
     // Function declarations/definitions
     std::unordered_map<std::string, FnDeclNode *> fnDecls;
