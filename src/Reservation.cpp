@@ -120,6 +120,27 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             output += var.emitCopyTo(*this);
             break;
         case ExprNode::FnCall: {
+            if (expr->fnCall->identifier == "svc") {
+                for (int i = 1; i < expr->fnCall->argList.size() && i < 8; i++) {
+                    ExprNode *argNode = expr->fnCall->argList[i];
+                    auto arg = StackFrame::Reservation(argNode->type, (Register)(i-1));
+                    if (argNode->containsFnCalls()) {
+                        auto tmpRes = sf->reserveExpr(argNode->type);
+                        output += tmpRes.emitFromExprNode(sf, argNode);
+                        output += tmpRes.emitCopyTo(arg);
+                        sf->unreserveExpr();
+                    } else {
+                        output += arg.emitFromExprNode(sf, argNode);
+                    }
+                }
+                TypeNode intType = TypeNode(BuiltinType::Int);
+                auto syscallRes = StackFrame::Reservation(&intType, Register::x16);
+                auto returnVal = StackFrame::Reservation(&intType, Register::x0);
+                output += syscallRes.emitFromExprNode(sf, expr->fnCall->argList[0]);
+                output += "svc #0\n";
+                output += returnVal.emitCopyTo(*this);
+                break;
+            }
             // TODO: allow more than 8 arguments
             FnCallNode *fnCall = expr->fnCall;
             FnDeclNode *fnDecl = fnCall->fnDecl;
@@ -130,6 +151,7 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
                     auto tmpRes = sf->reserveExpr(argNode->type);
                     output += tmpRes.emitFromExprNode(sf, argNode);
                     output += tmpRes.emitCopyTo(arg);
+                    sf->unreserveExpr();
                 } else {
                     output += arg.emitFromExprNode(sf, argNode);
                 }

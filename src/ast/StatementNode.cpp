@@ -37,6 +37,27 @@ StatementNode::StatementNode(StatementKind derivedKind)
 
 std::string StatementNode::emit(StackFrame *sf) {
     std::string output = "";
+
+    if (kind == StatementNode::FnCall && fnCall->identifier == "svc") {
+        for (int i = 1; i < fnCall->argList.size() && i < 8; i++) {
+            ExprNode *argNode = fnCall->argList[i];
+            auto arg = StackFrame::Reservation(argNode->type, (Register)(i-1));
+            if (argNode->containsFnCalls()) {
+                auto tmpRes = sf->reserveExpr(argNode->type);
+                output += tmpRes.emitFromExprNode(sf, argNode);
+                output += tmpRes.emitCopyTo(arg);
+                sf->unreserveExpr();
+            } else {
+                output += arg.emitFromExprNode(sf, argNode);
+            }
+        }
+        TypeNode intType = TypeNode(BuiltinType::Int);
+        auto syscallRes = StackFrame::Reservation(&intType, Register::x16);
+        output += syscallRes.emitFromExprNode(sf, fnCall->argList[0]);
+        output += "svc #0\n";
+        goto endStatement;
+    }
+
     if (kind == StatementNode::FnCall) {
         // Check for builtin functions
         for (auto &builtin : BUILTIN_FNS) {
@@ -54,6 +75,7 @@ std::string StatementNode::emit(StackFrame *sf) {
                 auto tmpRes = sf->reserveExpr(argNode->type);
                 output += tmpRes.emitFromExprNode(sf, argNode);
                 output += tmpRes.emitCopyTo(arg);
+                sf->unreserveExpr();
             } else {
                 output += arg.emitFromExprNode(sf, argNode);
             }

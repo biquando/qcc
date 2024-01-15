@@ -17,6 +17,10 @@ FnCallNode::FnCallNode(std::string identifier, FnDeclNode *fnDecl)
 }
 
 void FnCallNode::verifyParameters() {
+    if (identifier == "svc" && argList.size() >= 1) {
+        return;
+    }
+
     if (argList.size() != fnDecl->paramList.size()) {
         goto error_mismatched_params;
     }
@@ -32,6 +36,7 @@ void FnCallNode::verifyParameters() {
 error_mismatched_params:
     std::cerr << "ERROR: Function call " << identifier
               << " does not match the declared signature\n";
+    exit(EXIT_FAILURE);
 }
 
 std::ostream &operator<<(std::ostream &os, FnCallNode &node) {

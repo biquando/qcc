@@ -23,6 +23,15 @@ CompileState::CompileState(std::ostream &os)
             new ParamNode(new TypeNode(BuiltinType::Int), "i")
         })
     );
+
+    // Not a technically function, but still has a signature
+    addFnDecl(new FnDeclNode(
+        new TypeNode(BuiltinType::Int),
+        "svc",
+        std::vector<ParamNode *>{
+            new ParamNode(new TypeNode(BuiltinType::Int), "syscall")
+        })
+    );
 }
 
 void CompileState::pushFrame(FnDefNode *fnDef) {
