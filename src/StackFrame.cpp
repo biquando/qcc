@@ -189,6 +189,8 @@ std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
                     + toStr(src.location.reg) + "\n";
             break;
         case BuiltinOperator::Star:
+            output += "ldr " + toStr(dst.location.reg) + ", ["
+                    + toStr(src.location.reg) + "]\n";
             break;
         case BuiltinOperator::Not:
             output += "cmp " + toStr(src.location.reg) + ", #0\n";
