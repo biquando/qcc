@@ -38,26 +38,46 @@ std::string StackFrame::Reservation::emitCopyTo(Reservation other) {
 
     std::string output = "";
 
+    std::string strInstr, ldrInstr, rTo, rFrom;
+    switch (type->size()) {
+        case 1:
+            ldrInstr = "ldrb";
+            rFrom = "w";
+            break;
+        default:
+            ldrInstr = "ldr";
+            rFrom = "x";
+    }
+    switch (other.type->size()) {
+        case 1:
+            strInstr = "strb";
+            rTo = "w";
+            break;
+        default:
+            strInstr = "str";
+            rTo = "x";
+    }
+
     if (kind == Reg && other.kind == Reg) {
-        output += "mov " + toStr(other.location.reg) + ", "
-                + toStr(location.reg) + "\n";
+        output += "mov " + toStr(other.location.reg, rTo) + ", "
+                + toStr(location.reg, rFrom) + "\n";
 
     } else if (kind == Reg && other.kind == Stack) {
-        output += "str " + toStr(location.reg) + ", "
+        output += strInstr + " " + toStr(location.reg, rFrom) + ", "
                 + "[fp, #-" + toStr(other.location.stackOffset)
                 + "]\n";
 
     } else if (kind == Stack && other.kind == Reg) {
-        output += "ldr " + toStr(other.location.reg) + ", "
+        output += ldrInstr + " " + toStr(other.location.reg, rTo) + ", "
                 + "[fp, #-" + toStr(location.stackOffset)
                 + "]\n";
 
     } else if (kind == Stack && other.kind == Stack) {
         const Register TMP_REG = Register::x16;
-        output += "ldr " + toStr(TMP_REG) + ", "
+        output += ldrInstr + " " + toStr(TMP_REG, rFrom) + ", "
                 + "[fp, #-" + toStr(location.stackOffset)
                 + "]\n";
-        output += "str " + toStr(TMP_REG) + ", "
+        output += strInstr + " " + toStr(TMP_REG, rTo) + ", "
                 + "[fp, #-" + toStr(other.location.stackOffset)
                 + "]\n";
     }

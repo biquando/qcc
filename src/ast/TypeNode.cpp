@@ -13,6 +13,21 @@ TypeNode::TypeNode(LiteralType literalType)
         : isCustom(false),
           builtinType(toBuiltinType(literalType)) {}
 
+unsigned TypeNode::size() {
+    if (isCustom) {
+        return 0;
+    }
+
+    switch (builtinType) {
+        case BuiltinType::Int:
+            return 8;
+        case BuiltinType::Char:
+            return 1;
+        case BuiltinType::Void:
+            return 0;
+    }
+}
+
 bool TypeNode::operator==(TypeNode &other) {
     if (isCustom != other.isCustom) { return false; }
     return isCustom

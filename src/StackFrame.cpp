@@ -11,6 +11,19 @@ StackFrame::StackFrame(CompileState *cs, FnDefNode *fnDef)
 
 void StackFrame::incStackPos(long amt) {
     stackPos += amt;
+
+    if (amt > 0) {
+        long paddingAmt = 0;
+        while (stackPos % amt != 0) {
+            paddingAmt++;
+            stackPos++;
+        }
+        stackIncrementPadding.push_back(paddingAmt);
+    } else if (amt < 0) {
+        stackPos -= stackIncrementPadding.back();
+        stackIncrementPadding.pop_back();
+    }
+
     if (stackPos > maxStackPos) {
         maxStackPos = stackPos;
     }
@@ -36,7 +49,7 @@ StackFrame::Reservation StackFrame::reserveVariable(TypeNode *type) {
                      "are still reserved\n";
         exit(EXIT_FAILURE);
     }
-    incStackPos(8);
+    incStackPos(type->size());
     variableReservations.emplace_back(type, stackPos);
     return variableReservations.back();
 }
@@ -46,7 +59,7 @@ StackFrame::Reservation StackFrame::reserveExpr(TypeNode *type) {
     if (numReservedExpr < 8) {
         exprReservations.emplace_back(type, (Register)(numReservedExpr + 8));
     } else {
-        incStackPos(8);
+        incStackPos(type->size());
         exprReservations.emplace_back(type, stackPos);
     }
     return exprReservations.back();
@@ -58,7 +71,7 @@ void StackFrame::unreserveVariable() {
                      "expressions are still reserved\n";
         exit(EXIT_FAILURE);
     }
-    incStackPos(-8);
+    incStackPos(-variableReservations.back().type->size());
     variableReservations.pop_back();
 }
 
@@ -67,7 +80,7 @@ void StackFrame::unreserveExpr() {
 
     Reservation latest = exprReservations.back();
     if (latest.kind == Reservation::Stack) {
-        incStackPos(-8);
+        incStackPos(latest.type->size());
     }
     exprReservations.pop_back();
 }

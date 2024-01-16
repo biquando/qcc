@@ -52,6 +52,7 @@ public:
     TypeNode(BuiltinType builtinType);
     TypeNode(std::string customType);
     TypeNode(LiteralType literalType);
+    unsigned size();
     bool operator==(TypeNode &other);
     bool operator!=(TypeNode &other);
 };
@@ -192,7 +193,7 @@ enum class Register {
     x30, lr = x30,
     x31, sp = x31,
 };
-std::string toStr(Register res);
+std::string toStr(Register res, std::string regPrefix = "x");
 std::string toStr(long l);
 std::ostream &operator<<(std::ostream &os, Register &reg);
 
@@ -223,6 +224,7 @@ public:
 
     CompileState *cs;
     FnDefNode *fnDef;
+    std::vector<long> stackIncrementPadding;
     long stackPos = 0;
     long maxStackPos = 0;
 

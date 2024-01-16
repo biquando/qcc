@@ -3,8 +3,8 @@
 #include <string>
 #include "CompileState.hpp"
 
-std::string toStr(Register res) {
-    return "x" + std::to_string((int)res);
+std::string toStr(Register res, std::string regPrefix) {
+    return regPrefix + std::to_string((int)res);
 }
 
 std::string toStr(long l) {
