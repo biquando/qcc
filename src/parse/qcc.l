@@ -48,7 +48,7 @@ char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char, loc); }
 {INT}      { return yy::parser::make_INT_LITERAL(strtol(yytext, NULL, 0), loc); }
 {CHAR}     { return yy::parser::make_CHAR_LITERAL(yytext[1], loc); }
 {ESC_CHAR} { return yy::parser::make_CHAR_LITERAL(_escape(yytext[2]), loc); }
-\"([^\\]|\\.)*\" { return yy::parser::make_STRING_LITERAL(_parseStr(yytext), loc); }
+\"([^\\\n]|\\.)*\" { return yy::parser::make_STRING_LITERAL(_parseStr(yytext), loc); }
 
  /* Operators */
 "+"  { return yy::parser::make_OP_PLUS   (BuiltinOperator::Plus  , loc); }
