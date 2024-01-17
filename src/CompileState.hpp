@@ -53,8 +53,8 @@ public:
     TypeNode(std::string customType);
     TypeNode(LiteralType literalType);
     unsigned size();
-    bool operator==(TypeNode &other);
-    bool operator!=(TypeNode &other);
+    bool operator==(const TypeNode &other) const;
+    bool operator!=(const TypeNode &other) const;
 };
 
 class ParamNode {
@@ -125,7 +125,7 @@ private:
 class ExprNode {
 public:
     enum ExprKind {
-        Literal, Identifier, FnCall, BinaryOp, UnaryOp,
+        Literal, Identifier, FnCall, BinaryOp, UnaryOp, Empty
     } kind;
 
     LiteralNode *literal;               // Literal
@@ -141,6 +141,7 @@ public:
     ExprNode(FnCallNode *fnCall);
     ExprNode(BuiltinOperator binaryOperator, ExprNode *opr1, ExprNode *opr2);
     ExprNode(BuiltinOperator unaryOperator, ExprNode *opr);
+    ExprNode();
     bool containsFnCalls();
 };
 

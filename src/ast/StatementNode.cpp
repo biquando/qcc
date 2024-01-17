@@ -4,13 +4,23 @@
 StatementNode::StatementNode(TypeNode *type, std::string identifier)
         : kind(Declaration),
           type(type),
-          identifier(identifier) {}
+          identifier(identifier) {
+    if (*type == TypeNode(BuiltinType::Void)) {
+        std::cerr << "ERROR: Can't declare variable with void type\n";
+        exit(EXIT_FAILURE);
+    }
+}
 
 StatementNode::StatementNode(TypeNode *type, std::string identifier, ExprNode *expr)
         : kind(Initialization),
           type(type),
           identifier(identifier),
-          expr(expr) {}
+          expr(expr) {
+    if (*type == TypeNode(BuiltinType::Void)) {
+        std::cerr << "ERROR: Can't declare variable with void type\n";
+        exit(EXIT_FAILURE);
+    }
+}
 
 StatementNode::StatementNode(std::string identifier, ExprNode *rexpr)
         : kind(Assignment),
@@ -87,13 +97,15 @@ std::string StatementNode::emit(StackFrame *sf) {
     }
 
     if (kind == StatementNode::Return) {
-        auto ret = StackFrame::Reservation(type, Register::x0);
-        if (containsFnCalls()) {
-            auto tmpRes = sf->reserveExpr(type);
-            output += tmpRes.emitFromExprNode(sf, expr);
-            output += tmpRes.emitCopyTo(ret);
-        } else {
-            output += ret.emitFromExprNode(sf, expr);
+        if (expr->kind != ExprNode::Empty) {
+            auto ret = StackFrame::Reservation(type, Register::x0);
+            if (containsFnCalls()) {
+                auto tmpRes = sf->reserveExpr(type);
+                output += tmpRes.emitFromExprNode(sf, expr);
+                output += tmpRes.emitCopyTo(ret);
+            } else {
+                output += ret.emitFromExprNode(sf, expr);
+            }
         }
         output += "b return_" + sf->fnDef->identifier + "\n";
         goto endStatement;

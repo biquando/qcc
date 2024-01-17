@@ -28,14 +28,14 @@ unsigned TypeNode::size() {
     }
 }
 
-bool TypeNode::operator==(TypeNode &other) {
+bool TypeNode::operator==(const TypeNode &other) const {
     if (isCustom != other.isCustom) { return false; }
     return isCustom
         ? customType == other.customType
         : builtinType == other.builtinType;
 }
 
-bool TypeNode::operator!=(TypeNode &other) {
+bool TypeNode::operator!=(const TypeNode &other) const {
     return !(*this == other);
 }
 

@@ -146,6 +146,7 @@ assignment
 
 return
     : RETURN expr { $$ = new StatementNode($2); }
+    | RETURN      { $$ = new StatementNode(new ExprNode()); }
     ;
 
 fnCall

@@ -6,7 +6,22 @@ FnDefNode::FnDefNode(FnDeclNode fnDeclNode, std::vector<StatementNode *> block)
         : FnDeclNode(fnDeclNode.returnType,
                      fnDeclNode.identifier,
                      fnDeclNode.paramList),
-          block(block) {}
+          block(block) {
+    bool returnsVoid = *returnType == TypeNode(BuiltinType::Void);
+    for (auto *statement : block) {
+        if (statement->kind != StatementNode::Return) { continue; }
+        if (returnsVoid && statement->expr->kind != ExprNode::Empty) {
+            std::cerr << "ERROR: Tried to return a value from void function "
+                      << identifier << '\n';
+            exit(EXIT_FAILURE);
+        }
+        if (!returnsVoid && statement->expr->kind == ExprNode::Empty) {
+            std::cerr << "ERROR: Non-void function " << identifier
+                      << " should return a value\n";
+            exit(EXIT_FAILURE);
+        }
+    }
+}
 
 std::ostream &operator<<(std::ostream &os, FnDefNode &node) {
     IndentedStream ios(os);

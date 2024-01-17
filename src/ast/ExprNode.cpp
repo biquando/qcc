@@ -14,7 +14,12 @@ ExprNode::ExprNode(std::string identifier, TypeNode *type)
 ExprNode::ExprNode(FnCallNode *fnCall)
         : kind(FnCall),
           fnCall(fnCall),
-          type(fnCall->fnDecl->returnType) {}
+          type(fnCall->fnDecl->returnType) {
+    if (*type == TypeNode(BuiltinType::Void)) {
+        std::cerr << "ERROR: Can't use void function in expression\n";
+        exit(EXIT_FAILURE);
+    }
+}
 
 ExprNode::ExprNode(BuiltinOperator binaryOperator, ExprNode *opr1, ExprNode *opr2)
         : kind(BinaryOp),
@@ -57,6 +62,10 @@ ExprNode::ExprNode(BuiltinOperator unaryOperator, ExprNode *opr)
     type = opr->type;
 }
 
+ExprNode::ExprNode()
+        : kind(Empty),
+          type(new TypeNode(BuiltinType::Void)) {}
+
 bool ExprNode::containsFnCalls() {
     return kind == FnCall
         || kind == BinaryOp
@@ -86,6 +95,8 @@ std::ostream &operator<<(std::ostream &os, ExprNode &node) {
         case ExprNode::UnaryOp:
             os << " (UnaryOp: " << node.builtinOperator << ")\n";
             ios << *(node.opr);
+            break;
+        case ExprNode::Empty:
             break;
     }
     return os;
