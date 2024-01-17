@@ -43,6 +43,7 @@
 %token <std::string> IDENTIFIER
 %token <long> INT_LITERAL
 %token <char> CHAR_LITERAL
+%token <std::string> STRING_LITERAL
 
 %type <FnDeclNode *> fnDecl fnSignature
 %type <FnDefNode *> fnDef
@@ -187,6 +188,14 @@ argList
 array
     : LBRACE RBRACE { $$ = new ExprNode(new std::vector<ExprNode *>()); }
     | LBRACE argList RBRACE { $$ = new ExprNode($2); }
+    | STRING_LITERAL {
+        auto *arr = new std::vector<ExprNode *>();
+        for (char c : $1) {
+            ExprNode *charExpr = new ExprNode(new LiteralNode(c));
+            arr->push_back(charExpr);
+        }
+        $$ = new ExprNode(arr);
+    }
     ;
 
 expr
