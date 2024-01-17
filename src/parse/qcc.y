@@ -58,6 +58,7 @@
 %type <std::vector<ParamNode *> *> paramList
 %type <std::vector<StatementNode *> *> block blockWithBraces statementBlock
 %type <std::vector<ExprNode *> *> argList
+%type <ExprNode *> array
 
 %%
 
@@ -138,6 +139,7 @@ declaration
 
 initialization
     : type IDENTIFIER ASSIGN expr { $$ = new StatementNode($1, $2, $4); drv.cs->setVarType($2, $1); }
+    | type IDENTIFIER ASSIGN array { $$ = new StatementNode($1, $2, $4); drv.cs->setVarType($2, $1); }
     ;
 
 assignment
@@ -180,6 +182,11 @@ statementBlock
 argList
     : expr { $$ = new std::vector<ExprNode *>(); $$->push_back($1); }
     | argList COMMA expr { $1->push_back($3); $$ = $1; }
+    ;
+
+array
+    : LBRACE RBRACE { $$ = new ExprNode(new std::vector<ExprNode *>()); }
+    | LBRACE argList RBRACE { $$ = new ExprNode($2); }
     ;
 
 expr

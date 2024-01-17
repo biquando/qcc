@@ -191,10 +191,29 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             sf->unreserveExpr();
             break;
         case ExprNode::UnaryOp:
-            output += emitFromExprNode(sf, expr->opr);
-            output += expr->builtinOperator == BuiltinOperator::BitAnd
-                    ? sf->emitDereference(*this, expr->opr->identifier)
-                    : sf->emitUnaryOp(expr->builtinOperator, *this, *this);
+            if (expr->builtinOperator == BuiltinOperator::BitAnd) {
+                output += sf->emitDereference(*this, expr->opr->identifier);
+            } else {
+                output += emitFromExprNode(sf, expr->opr);
+                output += sf->emitUnaryOp(expr->builtinOperator, *this, *this);
+            }
+            break;
+        case ExprNode::Array:
+            {
+                for (int i = expr->array->size() - 1; i >= 0; i--) {
+                    ExprNode *elem = (*expr->array)[i];
+                    Reservation elemRes = sf->reserveVariable(elem->type);
+                    output += elemRes.emitFromExprNode(sf, elem);
+                }
+                TypeNode ptrType(LiteralType::Int);
+                Reservation tmp = Reservation(&ptrType, Register::x16);
+                std::string tmpStr = toStr(tmp.location.reg);
+                output += tmp.emitPutValue(sf->stackPos);
+                output += "sub " + tmpStr + ", fp, " + tmpStr + "\n";
+                output += tmp.emitCopyTo(*this);
+            }
+            break;
+        case ExprNode::Empty:
             break;
     }
     return output;

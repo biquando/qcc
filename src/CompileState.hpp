@@ -16,6 +16,8 @@ class FnDefNode;
 class TypeNode;
 class ParamNode;
 class StatementNode;
+class IfNode;
+class WhileNode;
 class FnCallNode;
 class ExprNode;
 class LiteralNode;
@@ -76,6 +78,7 @@ public:
     std::string identifier;     // Declaration/Initialization/Assignment
     ExprNode *expr;             // Initialization/Assignment/Return
     FnCallNode *fnCall;         // FnCall
+    std::vector<ExprNode *> *array; // ArrayInitialization
 
     StatementNode(TypeNode *type, std::string identifier);
     StatementNode(TypeNode *type, std::string identifier, ExprNode *expr);
@@ -125,7 +128,7 @@ private:
 class ExprNode {
 public:
     enum ExprKind {
-        Literal, Identifier, FnCall, BinaryOp, UnaryOp, Empty
+        Literal, Identifier, FnCall, BinaryOp, UnaryOp, Array, Empty
     } kind;
 
     LiteralNode *literal;               // Literal
@@ -134,6 +137,7 @@ public:
     BuiltinOperator builtinOperator;    // BinaryOp/UnaryOp
     ExprNode *opr1, *opr2;              // BinaryOp
     ExprNode *opr;                      // UnaryOp
+    std::vector<ExprNode *> *array;     // Array
     TypeNode *type;
 
     ExprNode(LiteralNode *literal);
@@ -141,6 +145,7 @@ public:
     ExprNode(FnCallNode *fnCall);
     ExprNode(BuiltinOperator binaryOperator, ExprNode *opr1, ExprNode *opr2);
     ExprNode(BuiltinOperator unaryOperator, ExprNode *opr);
+    ExprNode(std::vector<ExprNode *> *array);
     ExprNode();
     bool containsFnCalls();
 };

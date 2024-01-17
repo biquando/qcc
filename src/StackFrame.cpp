@@ -201,10 +201,21 @@ std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
             output += "neg " + toStr(dst.location.reg) + ", "
                     + toStr(src.location.reg) + "\n";
             break;
-        case BuiltinOperator::Star:
-            output += "ldr " + toStr(dst.location.reg) + ", ["
+        case BuiltinOperator::Star: {
+            std::string ldrInstr, r;
+            switch (res.type->size()) {
+                case 1:
+                    ldrInstr = "ldrb";
+                    r= "w";
+                    break;
+                default:
+                    ldrInstr = "ldr";
+                    r= "x";
+            }
+            output += ldrInstr + " " + toStr(dst.location.reg, r) + ", ["
                     + toStr(src.location.reg) + "]\n";
             break;
+        }
         case BuiltinOperator::Not:
             output += "cmp " + toStr(src.location.reg) + ", #0\n";
             output += "cset " + toStr(dst.location.reg) + ", eq\n";

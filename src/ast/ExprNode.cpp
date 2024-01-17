@@ -62,6 +62,11 @@ ExprNode::ExprNode(BuiltinOperator unaryOperator, ExprNode *opr)
     type = opr->type;
 }
 
+ExprNode::ExprNode(std::vector<ExprNode *> *array)
+        : kind(Array),
+          array(array),
+          type(new TypeNode(BuiltinType::Int)) {}
+
 ExprNode::ExprNode()
         : kind(Empty),
           type(new TypeNode(BuiltinType::Void)) {}

@@ -20,6 +20,12 @@ StatementNode::StatementNode(TypeNode *type, std::string identifier, ExprNode *e
         std::cerr << "ERROR: Can't declare variable with void type\n";
         exit(EXIT_FAILURE);
     }
+
+    if (expr->kind == ExprNode::Array && *type != TypeNode(BuiltinType::Int)) {
+        std::cerr << "ERROR: Can't assign array to variable of type"
+                  << *type << '\n';
+        exit(EXIT_FAILURE);
+    }
 }
 
 StatementNode::StatementNode(std::string identifier, ExprNode *rexpr)
@@ -98,9 +104,9 @@ std::string StatementNode::emit(StackFrame *sf) {
 
     if (kind == StatementNode::Return) {
         if (expr->kind != ExprNode::Empty) {
-            auto ret = StackFrame::Reservation(type, Register::x0);
+            auto ret = StackFrame::Reservation(expr->type, Register::x0);
             if (containsFnCalls()) {
-                auto tmpRes = sf->reserveExpr(type);
+                auto tmpRes = sf->reserveExpr(expr->type);
                 output += tmpRes.emitFromExprNode(sf, expr);
                 output += tmpRes.emitCopyTo(ret);
             } else {
