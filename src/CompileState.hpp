@@ -48,13 +48,19 @@ public:
 
 class TypeNode {
 public:
-    bool isCustom;
+    enum TypeKind {
+        Builtin, Custom, Pointer
+    } kind;
     BuiltinType builtinType;
     std::string customType;
+    TypeNode *pointerType;
     TypeNode(BuiltinType builtinType);
-    TypeNode(std::string customType);
     TypeNode(LiteralType literalType);
+    TypeNode(std::string customType);
+    TypeNode(TypeNode *pointerType);
     unsigned size();
+    bool validOp(BuiltinOperator op, TypeNode *otherType);
+    bool validOp(BuiltinOperator op);
     bool operator==(const TypeNode &other) const;
     bool operator!=(const TypeNode &other) const;
 };

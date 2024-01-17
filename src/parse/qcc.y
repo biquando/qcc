@@ -104,6 +104,7 @@ fnDef
 type
     : BUILTIN_TYPE { $$ = new TypeNode($1); }
     /* | IDENTIFIER { $$ = new TypeNode($1); } */
+    | type OP_STAR { $$ = new TypeNode($1); }
     ;
 
 paramList

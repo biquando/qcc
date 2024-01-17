@@ -2,20 +2,28 @@
 #include "util.hpp"
 
 TypeNode::TypeNode(BuiltinType builtinType)
-        : isCustom(false),
+        : kind(Builtin),
           builtinType(builtinType) {}
 
-TypeNode::TypeNode(std::string customType)
-        : isCustom(true),
-          customType(customType) {}
-
 TypeNode::TypeNode(LiteralType literalType)
-        : isCustom(false),
+        : kind(Builtin),
           builtinType(toBuiltinType(literalType)) {}
 
+TypeNode::TypeNode(std::string customType)
+        : kind(Custom),
+          customType(customType) {}
+
+TypeNode::TypeNode(TypeNode *pointerType)
+        : kind(Pointer),
+          pointerType(pointerType) {}
+
 unsigned TypeNode::size() {
-    if (isCustom) {
+    if (kind == Custom) {
         return 0;
+    }
+
+    if (kind == Pointer) {
+        return 8;
     }
 
     switch (builtinType) {
@@ -28,11 +36,57 @@ unsigned TypeNode::size() {
     }
 }
 
+bool TypeNode::validOp(BuiltinOperator op, TypeNode *otherType) {
+    if (*this == TypeNode(BuiltinType::Void)) { return false; }
+
+    if (kind == Pointer) {
+        switch (op) {
+            case BuiltinOperator::Plus:
+            case BuiltinOperator::Minus:
+                return otherType->kind != Pointer;
+            case BuiltinOperator::Eq:
+            case BuiltinOperator::Ne:
+            case BuiltinOperator::Lt:
+            case BuiltinOperator::Gt:
+            case BuiltinOperator::Le:
+            case BuiltinOperator::Ge:
+                return otherType->kind == Pointer;
+            default:
+                return false;
+        }
+    }
+    return true;
+}
+
+bool TypeNode::validOp(BuiltinOperator op) {
+    if (*this == TypeNode(BuiltinType::Void)) { return false; }
+
+    if (kind == Pointer) {
+        switch (op) {
+            case BuiltinOperator::Star:
+            case BuiltinOperator::BitAnd:
+            case BuiltinOperator::Not:
+                return true;
+            default:
+                return false;
+        }
+    } else {
+        if (op == BuiltinOperator::Star) { return false; }
+    }
+    return true;
+}
+
 bool TypeNode::operator==(const TypeNode &other) const {
-    if (isCustom != other.isCustom) { return false; }
-    return isCustom
-        ? customType == other.customType
-        : builtinType == other.builtinType;
+    if (kind != other.kind) { return false; }
+
+    switch (kind) {
+        case Builtin:
+            return builtinType == other.builtinType;
+        case Custom:
+            return customType == other.customType;
+        case Pointer:
+            return *pointerType == *other.pointerType;
+    }
 }
 
 bool TypeNode::operator!=(const TypeNode &other) const {
@@ -41,10 +95,16 @@ bool TypeNode::operator!=(const TypeNode &other) const {
 
 std::ostream &operator<<(std::ostream &os, TypeNode &node) {
     os << "TypeNode: ";
-    if (node.isCustom) {
-        os << node.customType;
-    } else {
-        os << node.builtinType;
+    switch (node.kind) {
+        case TypeNode::Builtin:
+            os << node.builtinType;
+            break;
+        case TypeNode::Custom:
+            os << node.customType;
+            break;
+        case TypeNode::Pointer:
+            os << "*(" << *node.pointerType << ')';
+            break;
     }
     return os;
 }

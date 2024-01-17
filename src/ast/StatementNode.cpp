@@ -21,9 +21,9 @@ StatementNode::StatementNode(TypeNode *type, std::string identifier, ExprNode *e
         exit(EXIT_FAILURE);
     }
 
-    if (expr->kind == ExprNode::Array && *type != TypeNode(BuiltinType::Int)) {
-        std::cerr << "ERROR: Can't assign array to variable of type"
-                  << *type << '\n';
+    if (expr->kind == ExprNode::Array && type->kind != TypeNode::Pointer) {
+        std::cerr << "ERROR: Can't assign array to variable of type ("
+                  << *type << ")\n";
         exit(EXIT_FAILURE);
     }
 }
