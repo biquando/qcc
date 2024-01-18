@@ -195,6 +195,7 @@ array
             ExprNode *charExpr = new ExprNode(new LiteralNode(c));
             arr->push_back(charExpr);
         }
+        arr->push_back(new ExprNode(new LiteralNode('\0')));
         $$ = new ExprNode(arr);
     }
     ;

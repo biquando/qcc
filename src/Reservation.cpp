@@ -20,17 +20,6 @@ StackFrame::Reservation::Reservation(TypeNode *type, long stackOffset)
 StackFrame::Reservation::Reservation()
         : valid(false) {}
 
-bool StackFrame::Reservation::operator==(Reservation &other) {
-    if (kind != other.kind) { return false; }
-    if (kind == Reg) {
-        return location.reg == other.location.reg;
-    }
-    if (kind == Stack) {
-        return location.stackOffset == other.location.stackOffset;
-    }
-    return false;
-}
-
 std::string StackFrame::Reservation::emitCopyTo(Reservation other) {
     if (*this == other) {
         return "";
@@ -63,12 +52,12 @@ std::string StackFrame::Reservation::emitCopyTo(Reservation other) {
                 + toStr(location.reg, rFrom) + "\n";
 
     } else if (kind == Reg && other.kind == Stack) {
-        output += strInstr + " " + toStr(location.reg, rFrom) + ", "
+        output += strInstr + " " + toStr(location.reg, rTo) + ", "
                 + "[fp, #-" + toStr(other.location.stackOffset)
                 + "]\n";
 
     } else if (kind == Stack && other.kind == Reg) {
-        output += ldrInstr + " " + toStr(other.location.reg, rTo) + ", "
+        output += ldrInstr + " " + toStr(other.location.reg, rFrom) + ", "
                 + "[fp, #-" + toStr(location.stackOffset)
                 + "]\n";
 
@@ -121,10 +110,9 @@ std::string StackFrame::Reservation::emitPutValue(unsigned long val) {
 std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
                                                       ExprNode *expr) {
     std::string output = "";
-    unsigned long val;
-    Reservation var, exprRes;
     switch(expr->kind) {
-        case ExprNode::Literal:
+        case ExprNode::Literal: {
+            unsigned long val;
             switch (expr->literal->type) {
                 case LiteralType::Int:
                     val = expr->literal->i;
@@ -135,10 +123,12 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             }
             output += emitPutValue(val);
             break;
-        case ExprNode::Identifier:
-            var = sf->getVariable(expr->identifier);
+        }
+        case ExprNode::Identifier: {
+            Reservation var = sf->getVariable(expr->identifier);
             output += var.emitCopyTo(*this);
             break;
+        }
         case ExprNode::FnCall: {
             if (expr->fnCall->identifier == "svc") {
                 for (int i = 1; i < expr->fnCall->argList.size() && i < 8; i++) {
@@ -183,13 +173,24 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             output += returnVal.emitCopyTo(*this);
             break;
         }
-        case ExprNode::BinaryOp:
-            exprRes = sf->reserveExpr(expr->type);
-            output += emitFromExprNode(sf, expr->opr1);
-            output += exprRes.emitFromExprNode(sf, expr->opr2);
-            output += sf->emitBinaryOp(expr->builtinOperator, *this, *this, exprRes);
+        case ExprNode::BinaryOp: {
+            Reservation dstRes = *this;
+            if (expr->opr1->type->size() > this->type->size()) {
+                dstRes = sf->reserveExpr(expr->opr1->type);
+            }
+            Reservation opr2Res = sf->reserveExpr(expr->opr2->type);
+
+            output += dstRes.emitFromExprNode(sf, expr->opr1);
+            output += opr2Res.emitFromExprNode(sf, expr->opr2);
+            output += sf->emitBinaryOp(expr->builtinOperator, dstRes, dstRes, opr2Res);
+            output += dstRes.emitCopyTo(*this);
+
             sf->unreserveExpr();
+            if (dstRes != *this) {
+                sf->unreserveExpr();
+            }
             break;
+        }
         case ExprNode::UnaryOp:
             if (expr->builtinOperator == BuiltinOperator::BitAnd) {
                 output += sf->emitDereference(*this, expr->opr->identifier);
@@ -198,23 +199,40 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
                 output += sf->emitUnaryOp(expr->builtinOperator, *this, *this);
             }
             break;
-        case ExprNode::Array:
-            {
-                for (int i = expr->array->size() - 1; i >= 0; i--) {
-                    ExprNode *elem = (*expr->array)[i];
-                    Reservation elemRes = sf->reserveVariable(elem->type);
-                    output += elemRes.emitFromExprNode(sf, elem);
-                }
-                TypeNode ptrType(LiteralType::Int);
-                Reservation tmp = Reservation(&ptrType, Register::x16);
-                std::string tmpStr = toStr(tmp.location.reg);
-                output += tmp.emitPutValue(sf->stackPos);
-                output += "sub " + tmpStr + ", fp, " + tmpStr + "\n";
-                output += tmp.emitCopyTo(*this);
+        case ExprNode::Array: {
+            for (int i = expr->array->size() - 1; i >= 0; i--) {
+                ExprNode *elem = (*expr->array)[i];
+                Reservation elemRes = sf->reserveVariable(elem->type);
+                output += elemRes.emitFromExprNode(sf, elem);
             }
+            TypeNode ptrType(LiteralType::Int);
+            Reservation tmp = Reservation(&ptrType, Register::x16);
+            std::string tmpStr = toStr(tmp.location.reg);
+            output += tmp.emitPutValue(sf->stackPos);
+            output += "sub " + tmpStr + ", fp, " + tmpStr + "\n";
+            output += tmp.emitCopyTo(*this);
             break;
+        }
         case ExprNode::Empty:
             break;
     }
     return output;
+}
+
+bool StackFrame::Reservation::operator==(const Reservation &other) const {
+    if (!valid || !other.valid) { return false; }
+    if (kind != other.kind) { return false; }
+    if (*type != *other.type) { return false; }
+
+    if (kind == Reg) {
+        return location.reg == other.location.reg;
+    }
+    if (kind == Stack) {
+        return location.stackOffset == other.location.stackOffset;
+    }
+    return false;
+}
+
+bool StackFrame::Reservation::operator!=(const Reservation &other) const {
+    return !(*this == other);
 }

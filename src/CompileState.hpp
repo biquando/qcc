@@ -225,10 +225,11 @@ public:
         Reservation(TypeNode *type, Register reg);
         Reservation(TypeNode *type, long stackOffset);
         Reservation();
-        bool operator==(Reservation &other);
         std::string emitCopyTo(Reservation other);
         std::string emitPutValue(unsigned long val);
         std::string emitFromExprNode(StackFrame *sf, ExprNode *expr);
+        bool operator==(const Reservation &other) const;
+        bool operator!=(const Reservation &other) const;
     };
     std::vector<Reservation> variableReservations;
     std::vector<Reservation> exprReservations;
