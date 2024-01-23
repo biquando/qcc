@@ -62,6 +62,15 @@ ExprNode::ExprNode(BuiltinOperator binaryOperator, ExprNode *opr1, ExprNode *opr
         return;
     }
 
+    if (builtinOperator == BuiltinOperator::Percent) {
+        builtinOperator = BuiltinOperator::Minus;
+        this->opr1 = opr1;
+        this->opr2 = new ExprNode(BuiltinOperator::Star,
+            new ExprNode(BuiltinOperator::Fslash, opr1, opr2),
+            opr2
+        );
+    }
+
     if (*opr1->type == *opr2->type) {
         type = opr1->type;
         return;

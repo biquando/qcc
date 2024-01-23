@@ -11,7 +11,7 @@ enum class BuiltinType {
 };
 
 enum class BuiltinOperator {
-    Plus, Minus, Star, Fslash,
+    Plus, Minus, Star, Fslash, Percent,
     Eq, Ne,
     Lt, Gt, Le, Ge,
     Not,

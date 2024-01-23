@@ -51,21 +51,22 @@ char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char, loc); }
 \"([^\\\n]|\\.)*\" { return yy::parser::make_STRING_LITERAL(_parseStr(yytext), loc); }
 
  /* Operators */
-"+"  { return yy::parser::make_OP_PLUS   (BuiltinOperator::Plus  , loc); }
-"-"  { return yy::parser::make_OP_MINUS  (BuiltinOperator::Minus , loc); }
-"*"  { return yy::parser::make_OP_STAR   (BuiltinOperator::Star  , loc); }
-"/"  { return yy::parser::make_OP_FSLASH (BuiltinOperator::Fslash, loc); }
-"==" { return yy::parser::make_OP_EQ     (BuiltinOperator::Eq    , loc); }
-"!=" { return yy::parser::make_OP_NE     (BuiltinOperator::Ne    , loc); }
-"<"  { return yy::parser::make_OP_LT     (BuiltinOperator::Lt    , loc); }
-">"  { return yy::parser::make_OP_GT     (BuiltinOperator::Gt    , loc); }
-"<=" { return yy::parser::make_OP_LE     (BuiltinOperator::Le    , loc); }
-">=" { return yy::parser::make_OP_GE     (BuiltinOperator::Ge    , loc); }
-"!"  { return yy::parser::make_OP_NOT    (BuiltinOperator::Not   , loc); }
-"~"  { return yy::parser::make_OP_BIT_NOT(BuiltinOperator::BitNot, loc); }
-"&"  { return yy::parser::make_OP_BIT_AND(BuiltinOperator::BitAnd, loc); }
-"|"  { return yy::parser::make_OP_BIT_OR (BuiltinOperator::BitOr , loc); }
-"^"  { return yy::parser::make_OP_BIT_XOR(BuiltinOperator::BitXor, loc); }
+"+"  { return yy::parser::make_OP_PLUS   (BuiltinOperator::Plus   , loc); }
+"-"  { return yy::parser::make_OP_MINUS  (BuiltinOperator::Minus  , loc); }
+"*"  { return yy::parser::make_OP_STAR   (BuiltinOperator::Star   , loc); }
+"/"  { return yy::parser::make_OP_FSLASH (BuiltinOperator::Fslash , loc); }
+"%"  { return yy::parser::make_OP_PERCENT(BuiltinOperator::Percent, loc); }
+"==" { return yy::parser::make_OP_EQ     (BuiltinOperator::Eq     , loc); }
+"!=" { return yy::parser::make_OP_NE     (BuiltinOperator::Ne     , loc); }
+"<"  { return yy::parser::make_OP_LT     (BuiltinOperator::Lt     , loc); }
+">"  { return yy::parser::make_OP_GT     (BuiltinOperator::Gt     , loc); }
+"<=" { return yy::parser::make_OP_LE     (BuiltinOperator::Le     , loc); }
+">=" { return yy::parser::make_OP_GE     (BuiltinOperator::Ge     , loc); }
+"!"  { return yy::parser::make_OP_NOT    (BuiltinOperator::Not    , loc); }
+"~"  { return yy::parser::make_OP_BIT_NOT(BuiltinOperator::BitNot , loc); }
+"&"  { return yy::parser::make_OP_BIT_AND(BuiltinOperator::BitAnd , loc); }
+"|"  { return yy::parser::make_OP_BIT_OR (BuiltinOperator::BitOr  , loc); }
+"^"  { return yy::parser::make_OP_BIT_XOR(BuiltinOperator::BitXor , loc); }
 
  /* Syntactical tokens */
 "=" { return yy::parser::make_ASSIGN   (loc); }

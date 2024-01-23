@@ -35,7 +35,7 @@
 %left <BuiltinOperator> OP_EQ OP_NE
 %left <BuiltinOperator> OP_LT OP_GT OP_LE OP_GE
 %left <BuiltinOperator> OP_PLUS OP_MINUS
-%left <BuiltinOperator> OP_STAR OP_FSLASH
+%left <BuiltinOperator> OP_STAR OP_FSLASH OP_PERCENT
 %precedence <BuiltinOperator> OP_NOT OP_BIT_NOT
 %precedence LBRACKET RBRACKET
 %precedence LPAREN RPAREN
@@ -210,6 +210,7 @@ expr
     | expr OP_MINUS   expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_STAR    expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_FSLASH  expr { $$ = new ExprNode($2, $1, $3); }
+    | expr OP_PERCENT expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_EQ      expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_NE      expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_LT      expr { $$ = new ExprNode($2, $1, $3); }

@@ -11,21 +11,22 @@ std::ostream &operator<<(std::ostream &os, BuiltinType &type) {
 
 std::ostream &operator<<(std::ostream &os, BuiltinOperator &op) {
     switch (op) {
-        case BuiltinOperator::Plus:   return os << "Plus";
-        case BuiltinOperator::Minus:  return os << "Minus";
-        case BuiltinOperator::Star:   return os << "Star";
-        case BuiltinOperator::Fslash: return os << "Fslash";
-        case BuiltinOperator::Eq:     return os << "Eq";
-        case BuiltinOperator::Ne:     return os << "Ne";
-        case BuiltinOperator::Lt:     return os << "Lt";
-        case BuiltinOperator::Gt:     return os << "Gt";
-        case BuiltinOperator::Le:     return os << "Le";
-        case BuiltinOperator::Ge:     return os << "Ge";
-        case BuiltinOperator::Not:    return os << "Not";
-        case BuiltinOperator::BitNot: return os << "BitNot";
-        case BuiltinOperator::BitAnd: return os << "BitAnd";
-        case BuiltinOperator::BitOr:  return os << "BitOr";
-        case BuiltinOperator::BitXor: return os << "BitXor";
+        case BuiltinOperator::Plus:    return os << "Plus";
+        case BuiltinOperator::Minus:   return os << "Minus";
+        case BuiltinOperator::Star:    return os << "Star";
+        case BuiltinOperator::Fslash:  return os << "Fslash";
+        case BuiltinOperator::Percent: return os << "Percent";  // not used
+        case BuiltinOperator::Eq:      return os << "Eq";
+        case BuiltinOperator::Ne:      return os << "Ne";
+        case BuiltinOperator::Lt:      return os << "Lt";
+        case BuiltinOperator::Gt:      return os << "Gt";
+        case BuiltinOperator::Le:      return os << "Le";
+        case BuiltinOperator::Ge:      return os << "Ge";
+        case BuiltinOperator::Not:     return os << "Not";
+        case BuiltinOperator::BitNot:  return os << "BitNot";
+        case BuiltinOperator::BitAnd:  return os << "BitAnd";
+        case BuiltinOperator::BitOr:   return os << "BitOr";
+        case BuiltinOperator::BitXor:  return os << "BitXor";
     }
 }
 
