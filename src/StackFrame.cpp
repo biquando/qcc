@@ -35,7 +35,7 @@ void StackFrame::addVariable(TypeNode *type, std::string identifier) {
 }
 
 StackFrame::Reservation StackFrame::getVariable(std::string identifier) {
-    if (variables.find(identifier) == variables.end()) { // TEMP
+    if (variables.find(identifier) == variables.end()) {
         std::cerr << "ERROR: Undefined variable: "
                   << identifier << '\n';
         exit(EXIT_FAILURE);
@@ -71,7 +71,7 @@ void StackFrame::unreserveVariable() {
                      "expressions are still reserved\n";
         exit(EXIT_FAILURE);
     }
-    incStackPos(-variableReservations.back().type->size());
+    incStackPos(-(long)variableReservations.back().type->size());
     variableReservations.pop_back();
 }
 
@@ -206,11 +206,11 @@ std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
             switch (res.type->size()) {
                 case 1:
                     ldrInstr = "ldrb";
-                    r= "w";
+                    r = "w";
                     break;
                 default:
                     ldrInstr = "ldr";
-                    r= "x";
+                    r = "x";
             }
             output += ldrInstr + " " + toStr(dst.location.reg, r) + ", ["
                     + toStr(src.location.reg) + "]\n";
@@ -232,7 +232,7 @@ std::string StackFrame::emitUnaryOp(BuiltinOperator op, Reservation res,
     return output;
 }
 
-std::string StackFrame::emitDereference(Reservation res, std::string identifier) {
+std::string StackFrame::emitAddressOf(Reservation res, std::string identifier) {
     Reservation var = getVariable(identifier);
     long stackOffset = var.location.stackOffset;
     std::string output = "";

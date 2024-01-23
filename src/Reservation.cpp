@@ -124,10 +124,17 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
             output += emitPutValue(val);
             break;
         }
-        case ExprNode::Identifier: {
-            Reservation var = sf->getVariable(expr->identifier);
-            output += var.emitCopyTo(*this);
-            break;
+        case ExprNode::Accessor: {
+            if (expr->accessor->kind == AccessorNode::Identifier) {
+                Reservation var = sf->getVariable(expr->accessor->identifier);
+                output += var.emitCopyTo(*this);
+                break;
+            }
+            if (expr->accessor->kind == AccessorNode::Dereference) {
+                ExprNode derefOp(BuiltinOperator::Star, expr->accessor->expr);
+                output += emitFromExprNode(sf, &derefOp);
+                break;
+            }
         }
         case ExprNode::FnCall: {
             if (expr->fnCall->identifier == "svc") {
@@ -193,7 +200,7 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
         }
         case ExprNode::UnaryOp:
             if (expr->builtinOperator == BuiltinOperator::BitAnd) {
-                output += sf->emitDereference(*this, expr->opr->identifier);
+                output += sf->emitAddressOf(*this, expr->opr->accessor->identifier);
             } else {
                 output += emitFromExprNode(sf, expr->opr);
                 output += sf->emitUnaryOp(expr->builtinOperator, *this, *this);

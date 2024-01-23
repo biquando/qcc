@@ -42,7 +42,6 @@ bool TypeNode::validOp(BuiltinOperator op, TypeNode *otherType) {
     if (kind == Pointer) {
         switch (op) {
             case BuiltinOperator::Plus:
-            case BuiltinOperator::Minus:
                 return otherType->kind != Pointer;
             case BuiltinOperator::Eq:
             case BuiltinOperator::Ne:
@@ -51,6 +50,8 @@ bool TypeNode::validOp(BuiltinOperator op, TypeNode *otherType) {
             case BuiltinOperator::Le:
             case BuiltinOperator::Ge:
                 return otherType->kind == Pointer;
+            case BuiltinOperator::Minus:
+                return true;
             default:
                 return false;
         }

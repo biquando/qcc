@@ -21,6 +21,7 @@ class WhileNode;
 class FnCallNode;
 class ExprNode;
 class LiteralNode;
+class AccessorNode;
 
 /* SECTION: Node definitions */
 
@@ -81,14 +82,15 @@ public:
     } kind;
 
     TypeNode *type;             // Declaration/Initialization
-    std::string identifier;     // Declaration/Initialization/Assignment
+    std::string identifier;     // Declaration/Initialization
+    AccessorNode *accessor;     // Assignment
     ExprNode *expr;             // Initialization/Assignment/Return
     FnCallNode *fnCall;         // FnCall
     std::vector<ExprNode *> *array; // ArrayInitialization
 
     StatementNode(TypeNode *type, std::string identifier);
     StatementNode(TypeNode *type, std::string identifier, ExprNode *expr);
-    StatementNode(std::string identifier, ExprNode *rexpr);
+    StatementNode(AccessorNode *accessor, ExprNode *rexpr);
     StatementNode(ExprNode *returnExpr);
     StatementNode(FnCallNode *fnCall);
     StatementNode(StatementKind derivedKind);
@@ -134,11 +136,11 @@ private:
 class ExprNode {
 public:
     enum ExprKind {
-        Literal, Identifier, FnCall, BinaryOp, UnaryOp, Array, Empty
+        Literal, Accessor, FnCall, BinaryOp, UnaryOp, Array, Empty
     } kind;
 
     LiteralNode *literal;               // Literal
-    std::string identifier;             // Identifier
+    AccessorNode *accessor;             // Accessor
     FnCallNode *fnCall;                 // FnCall
     BuiltinOperator builtinOperator;    // BinaryOp/UnaryOp
     ExprNode *opr1, *opr2;              // BinaryOp
@@ -147,7 +149,7 @@ public:
     TypeNode *type;
 
     ExprNode(LiteralNode *literal);
-    ExprNode(std::string identifier, TypeNode *type);
+    ExprNode(AccessorNode *accessor);
     ExprNode(FnCallNode *fnCall);
     ExprNode(BuiltinOperator binaryOperator, ExprNode *opr1, ExprNode *opr2);
     ExprNode(BuiltinOperator unaryOperator, ExprNode *opr);
@@ -166,6 +168,19 @@ public:
     LiteralNode(char c);
 };
 
+class AccessorNode {
+public:
+    enum AccessorKind {
+        Identifier, Dereference
+    } kind;
+    std::string identifier;  // Identifier
+    ExprNode *expr;          // Dereference
+    TypeNode *type;
+
+    AccessorNode(std::string identifier, TypeNode *type);
+    AccessorNode(ExprNode *ptr);
+};
+
 /* SECTION: Print declarations */
 std::ostream &operator<<(std::ostream &os, BuiltinType &type);
 std::ostream &operator<<(std::ostream &os, BuiltinOperator &op);
@@ -181,6 +196,7 @@ std::ostream &operator<<(std::ostream &os, WhileNode &node);
 std::ostream &operator<<(std::ostream &os, FnCallNode &node);
 std::ostream &operator<<(std::ostream &os, ExprNode &node);
 std::ostream &operator<<(std::ostream &os, LiteralNode &node);
+std::ostream &operator<<(std::ostream &os, AccessorNode &node);
 
 /*
   Register Conventions:
@@ -255,7 +271,7 @@ public:
                              Reservation opr1, Reservation opr2);
     std::string emitUnaryOp(BuiltinOperator op, Reservation res,
                             Reservation opr);
-    std::string emitDereference(Reservation res, std::string identifier);
+    std::string emitAddressOf(Reservation res, std::string identifier);
     std::string emitSaveCaller();
     std::string emitLoadCaller();
 };

@@ -84,8 +84,8 @@ void FnDefNode::emit(CompileState &cs) {
         ios << "sub sp, sp, #" << sf->maxStackPos + fnCallOffset << '\n';
     }
     if (containsFnCalls) {
-        ios << "stp fp, lr, [sp, #" << sf->maxStackPos << "]\n"
-            << "sub fp, fp, #16\n";
+        ios << "stp fp, lr, [sp, #" << sf->maxStackPos << "]\n";
+        ios << "add fp, sp, #" << sf->maxStackPos << '\n';
     }
 
     ios << statementsOutput;

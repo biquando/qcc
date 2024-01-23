@@ -37,7 +37,8 @@
 %left <BuiltinOperator> OP_PLUS OP_MINUS
 %left <BuiltinOperator> OP_STAR OP_FSLASH
 %precedence <BuiltinOperator> OP_NOT OP_BIT_NOT
-%left LPAREN RPAREN
+%precedence LBRACKET RBRACKET
+%precedence LPAREN RPAREN
 
 %token <BuiltinType> BUILTIN_TYPE
 %token <std::string> IDENTIFIER
@@ -55,6 +56,7 @@
 %type <FnCallNode *> fnCall
 %type <ExprNode *> expr
 %type <LiteralNode *> literal
+%type <AccessorNode *> accessor
 
 %type <std::vector<ParamNode *> *> paramList
 %type <std::vector<StatementNode *> *> block blockWithBraces statementBlock
@@ -145,7 +147,7 @@ initialization
     ;
 
 assignment
-    : IDENTIFIER ASSIGN expr { $$ = new StatementNode($1, $3); }
+    : accessor ASSIGN expr { $$ = new StatementNode($1, $3); }
     ;
 
 return
@@ -202,7 +204,7 @@ array
 
 expr
     : literal { $$ = new ExprNode($1); }
-    | IDENTIFIER { $$ = new ExprNode($1, drv.cs->getVarType($1)); }
+    | accessor { $$ = new ExprNode($1); }
     | fnCall { $$ = new ExprNode($1); }
     | expr OP_PLUS    expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_MINUS   expr { $$ = new ExprNode($2, $1, $3); }
@@ -221,15 +223,25 @@ expr
     | expr OP_BIT_OR  expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_BIT_XOR expr { $$ = new ExprNode($2, $1, $3); }
     | OP_BIT_AND IDENTIFIER {
-        $$ = new ExprNode($1, new ExprNode($2, drv.cs->getVarType($2)));
+        $$ = new ExprNode($1,
+                new ExprNode(new AccessorNode($2, drv.cs->getVarType($2))));
     }
-    | OP_STAR         expr { $$ = new ExprNode($1, $2); }
     | LPAREN expr RPAREN { $$ = $2; }
     ;
 
 literal
     : INT_LITERAL { $$ = new LiteralNode($1); }
     | CHAR_LITERAL { $$ = new LiteralNode($1); }
+    ;
+
+accessor
+    : IDENTIFIER { $$ = new AccessorNode($1, drv.cs->getVarType($1)); }
+    | accessor LBRACKET expr RBRACKET {
+        $$ = new AccessorNode(
+            new ExprNode(BuiltinOperator::Plus, new ExprNode($1), $3)
+        );
+    }
+    | OP_STAR expr { $$ = new AccessorNode($2); } // TODO: fix shift-reduce conflict
     ;
 
 %%

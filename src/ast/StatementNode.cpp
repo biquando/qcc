@@ -28,9 +28,9 @@ StatementNode::StatementNode(TypeNode *type, std::string identifier, ExprNode *e
     }
 }
 
-StatementNode::StatementNode(std::string identifier, ExprNode *rexpr)
+StatementNode::StatementNode(AccessorNode *accessor, ExprNode *rexpr)
         : kind(Assignment),
-          identifier(identifier),
+          accessor(accessor),
           expr(rexpr) {}
 
 StatementNode::StatementNode(ExprNode *returnExpr)
@@ -117,14 +117,57 @@ std::string StatementNode::emit(StackFrame *sf) {
         goto endStatement;
     }
 
-    if (kind == StatementNode::Declaration || kind == StatementNode::Initialization) {
+    if (kind == StatementNode::Declaration) {
         sf->addVariable(type, identifier);
+        goto endStatement;
     }
 
-    // assuming not fncall
-    if (kind == StatementNode::Initialization || kind == StatementNode::Assignment) {
+    if (kind == StatementNode::Initialization) {
+        sf->addVariable(type, identifier);
         StackFrame::Reservation var = sf->getVariable(identifier);
         output += var.emitFromExprNode(sf, expr);
+        goto endStatement;
+    }
+
+    if (kind == StatementNode::Assignment && accessor->kind == AccessorNode::Identifier) {
+        StackFrame::Reservation var = sf->getVariable(accessor->identifier);
+        output += var.emitFromExprNode(sf, expr);
+        goto endStatement;
+    }
+
+    if (kind == StatementNode::Assignment && accessor->kind == AccessorNode::Dereference) {
+        if (accessor->expr->type->kind != TypeNode::Pointer) {
+            std::cerr << "ERROR: Tried to dereference non-pointer type "
+                      << *(accessor->expr->type) << '\n';
+            exit(EXIT_FAILURE);
+        }
+
+        StackFrame::Reservation ptrRes = sf->reserveVariable(accessor->expr->type);
+        output += ptrRes.emitFromExprNode(sf, accessor->expr);
+        StackFrame::Reservation valRes = sf->reserveVariable(expr->type);
+        output += valRes.emitFromExprNode(sf, expr);
+
+        StackFrame::Reservation tmpPtrRes(ptrRes.type, Register::x16);
+        output += ptrRes.emitCopyTo(tmpPtrRes);
+        StackFrame::Reservation tmpValRes(ptrRes.type, Register::x17);
+        output += valRes.emitCopyTo(tmpValRes);
+
+        std::string strInstr, r;
+        switch (ptrRes.type->size()) {
+             case 1:
+                 strInstr = "strb";
+                 r = "w";
+                 break;
+             default:
+                 strInstr = "str";
+                 r = "x";
+        }
+        output += strInstr + " " + toStr(tmpValRes.location.reg, r) + ", ["
+                  + toStr(tmpPtrRes.location.reg, r) + "]\n";
+
+        sf->unreserveVariable();  // unreserve valRes
+        sf->unreserveVariable();  // unreserve ptrRes
+        goto endStatement;
     }
 
 endStatement:
@@ -157,8 +200,8 @@ std::ostream &operator<<(std::ostream &os, StatementNode &node) {
             ios << '\n' << *(node.expr);
             break;
         case StatementNode::Assignment:
-            os << "Assignment): " << node.identifier;
-            ios << '\n' << *(node.expr);
+            os << "Assignment):\n";
+            ios << *(node.accessor) << '\n' << *(node.expr);
             break;
         case StatementNode::Return:
             os << "Return):\n";

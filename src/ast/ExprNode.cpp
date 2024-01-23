@@ -6,10 +6,10 @@ ExprNode::ExprNode(LiteralNode *literal)
           literal(literal),
           type(new TypeNode(literal->type)) {}
 
-ExprNode::ExprNode(std::string identifier, TypeNode *type)
-        : kind(Identifier),
-          identifier(identifier),
-          type(type) {}
+ExprNode::ExprNode(AccessorNode *accessor)
+        : kind(Accessor),
+          accessor(accessor),
+          type(accessor->type) {}
 
 ExprNode::ExprNode(FnCallNode *fnCall)
         : kind(FnCall),
@@ -118,8 +118,8 @@ std::ostream &operator<<(std::ostream &os, ExprNode &node) {
         case ExprNode::Literal:
             os << " (" << *(node.literal) << ')';
             break;
-        case ExprNode::Identifier:
-            os << " (Identifier: " << node.identifier << ')';
+        case ExprNode::Accessor:
+            os << " (Accessor): " << *(node.accessor);
             break;
         case ExprNode::FnCall:
             os << ": " << *(node.fnCall);

@@ -15,6 +15,7 @@ set(QCC_SOURCES
     ast/FnCallNode.cpp
     ast/ExprNode.cpp
     ast/LiteralNode.cpp
+    ast/AccessorNode.cpp
     parse/driver.cpp)
 
 
