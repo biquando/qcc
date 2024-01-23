@@ -153,7 +153,7 @@ std::string StatementNode::emit(StackFrame *sf) {
         output += valRes.emitCopyTo(tmpValRes);
 
         std::string strInstr, r;
-        switch (ptrRes.type->size()) {
+        switch (ptrRes.type->pointerType->size()) {
              case 1:
                  strInstr = "strb";
                  r = "w";
@@ -163,7 +163,7 @@ std::string StatementNode::emit(StackFrame *sf) {
                  r = "x";
         }
         output += strInstr + " " + toStr(tmpValRes.location.reg, r) + ", ["
-                  + toStr(tmpPtrRes.location.reg, r) + "]\n";
+                  + toStr(tmpPtrRes.location.reg) + "]\n";
 
         sf->unreserveVariable();  // unreserve valRes
         sf->unreserveVariable();  // unreserve ptrRes
