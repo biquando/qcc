@@ -26,6 +26,7 @@ WHILE_EXIT_0:
 std::string WhileNode::emit(StackFrame *sf) {
     std::string output = "";
     const unsigned long labelId = (sf->cs->numWhiles)++;
+    sf->loopIds.push_back(labelId);
     const std::string labelIdStr = std::to_string(labelId);
 
     TypeNode condType = TypeNode(LiteralType::Int);
@@ -44,6 +45,8 @@ std::string WhileNode::emit(StackFrame *sf) {
     }
     output += "b WHILE_COND_" + labelIdStr + "\n"
               "WHILE_EXIT_" + labelIdStr + ":\n";
+
+    sf->loopIds.pop_back();
     return output;
 }
 

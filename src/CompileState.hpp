@@ -78,7 +78,7 @@ public:
     enum StatementKind {
         Declaration, Initialization, Assignment, Return, FnCall,
         // Derived classes must be last
-        If, While,
+        If, While, Break, Continue,
     } kind;
 
     TypeNode *type;             // Declaration/Initialization
@@ -120,6 +120,18 @@ public:
     WhileNode(ExprNode *condition, std::vector<StatementNode *> block);
     virtual std::string emit(StackFrame *sf) override;
     virtual bool containsFnCalls() override;
+};
+
+class BreakNode : public StatementNode {
+public:
+    BreakNode();
+    virtual std::string emit(StackFrame *sf) override;
+};
+
+class ContinueNode : public StatementNode {
+public:
+    ContinueNode();
+    virtual std::string emit(StackFrame *sf) override;
 };
 
 class FnCallNode {
@@ -256,6 +268,7 @@ public:
     std::vector<long> stackIncrementPadding;
     long stackPos = 0;
     long maxStackPos = 0;
+    std::vector<unsigned long> loopIds;
 
     StackFrame(CompileState *cs, FnDefNode *fnDef);
     void incStackPos(long amt);

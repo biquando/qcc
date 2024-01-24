@@ -12,6 +12,8 @@ set(QCC_SOURCES
     ast/StatementNode.cpp
     ast/IfNode.cpp
     ast/WhileNode.cpp
+    ast/BreakNode.cpp
+    ast/ContinueNode.cpp
     ast/FnCallNode.cpp
     ast/ExprNode.cpp
     ast/LiteralNode.cpp

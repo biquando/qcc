@@ -39,10 +39,12 @@ int   { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Int, loc);  }
 char  { return yy::parser::make_BUILTIN_TYPE(BuiltinType::Char, loc); }
 
  /* Keywords */
-"return" { return yy::parser::make_RETURN(loc); }
-"if"     { return yy::parser::make_IF(loc); }
-"else"   { return yy::parser::make_ELSE(loc); }
-"while"  { return yy::parser::make_WHILE(loc); }
+"return"   { return yy::parser::make_RETURN(loc); }
+"if"       { return yy::parser::make_IF(loc); }
+"else"     { return yy::parser::make_ELSE(loc); }
+"while"    { return yy::parser::make_WHILE(loc); }
+"break"    { return yy::parser::make_BREAK(loc); }
+"continue" { return yy::parser::make_CONTINUE(loc); }
 
  /* Literals */
 {INT}      { return yy::parser::make_INT_LITERAL(strtol(yytext, NULL, 0), loc); }

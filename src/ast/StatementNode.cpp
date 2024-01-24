@@ -170,6 +170,10 @@ std::string StatementNode::emit(StackFrame *sf) {
         goto endStatement;
     }
 
+    std::cerr << "COMPILER ERROR: Tried to emit StatementNode with "
+                 "invalid kind\n";
+    exit(EXIT_FAILURE);
+
 endStatement:
     return output;
 }
@@ -221,6 +225,12 @@ std::ostream &operator<<(std::ostream &os, StatementNode &node) {
             os << *whileNode;
             break;
         }
+        case StatementNode::Break:
+            os << "BreakNode";
+            break;
+        case StatementNode::Continue:
+            os << "ContinueNode";
+            break;
     }
     return os;
 }

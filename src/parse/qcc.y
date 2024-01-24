@@ -26,7 +26,7 @@
     typedef std::vector<StatementNode *> Block;
 }
 
-%token ASSIGN COMMA LBRACE RBRACE SEMICOLON RETURN IF WHILE
+%token ASSIGN COMMA LBRACE RBRACE SEMICOLON RETURN IF WHILE BREAK CONTINUE
 %precedence PREC_THEN
 %precedence ELSE
 %left <BuiltinOperator> OP_BIT_OR
@@ -135,6 +135,8 @@ statement
     | fnCall SEMICOLON { $$ = new StatementNode($1); }
     | if { $$ = $1; }
     | while { $$ = $1; }
+    | BREAK SEMICOLON { $$ = new BreakNode(); }
+    | CONTINUE SEMICOLON { $$ = new ContinueNode(); }
     ;
 
 declaration
