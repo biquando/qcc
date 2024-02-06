@@ -49,4 +49,8 @@ int main(int argc, char *argv[]) {
     for (auto &builtin : cs.usedBuiltinFns) {
         os << BUILTIN_FN_DEFS.at(builtin);
     }
+
+    for (auto *staticData : cs.staticData) {
+        staticData->emit(cs);
+    }
 }

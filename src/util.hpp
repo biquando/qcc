@@ -23,3 +23,7 @@ public:
 private:
     IndentedStreamBuffer buffer;
 };
+
+namespace util {
+    unsigned long log2(unsigned long size);
+}

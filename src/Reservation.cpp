@@ -212,13 +212,33 @@ std::string StackFrame::Reservation::emitFromExprNode(StackFrame *sf,
                 Reservation elemRes = sf->reserveVariable(elem->type);
                 output += elemRes.emitFromExprNode(sf, elem);
             }
-            TypeNode ptrType(LiteralType::Int);
+            TypeNode voidType(BuiltinType::Void);
+            TypeNode ptrType(&voidType);
             Reservation tmp = Reservation(&ptrType, Register::x16);
             std::string tmpStr = toStr(tmp.location.reg);
             output += tmp.emitPutValue(sf->stackPos);
             output += "sub " + tmpStr + ", fp, " + tmpStr + "\n";
             output += tmp.emitCopyTo(*this);
             break;
+        }
+        case ExprNode::Static: {
+            /*
+                adrp	x8, l_.str@PAGE
+                add	x8, x8, l_.str@PAGEOFF
+                str	x8, [sp]
+            */
+            Reservation dst;
+            if (kind == Reg) {
+                dst = *this;
+            } else {
+                dst = Reservation(expr->type, Register::x16);
+            }
+            std::string dstStr = toStr(dst.location.reg);
+            std::string dataLabel =expr->staticData->label();
+
+            output += "adrp " + dstStr +  ", " + dataLabel + "@PAGE\n";
+            output += "add " + dstStr + ", " + dstStr + ", " + dataLabel + "@PAGEOFF\n";
+            output += dst.emitCopyTo(*this);
         }
         case ExprNode::Empty:
             break;

@@ -62,6 +62,7 @@
 %type <std::vector<StatementNode *> *> block blockWithBraces statementBlock
 %type <std::vector<ExprNode *> *> argList
 %type <ExprNode *> array
+%type <std::string> stringLiteral
 
 %%
 
@@ -193,7 +194,7 @@ argList
 array
     : LBRACE RBRACE { $$ = new ExprNode(new std::vector<ExprNode *>()); }
     | LBRACE argList RBRACE { $$ = new ExprNode($2); }
-    | STRING_LITERAL {
+    /* | STRING_LITERAL {
         auto *arr = new std::vector<ExprNode *>();
         for (char c : $1) {
             ExprNode *charExpr = new ExprNode(new LiteralNode(c));
@@ -201,13 +202,22 @@ array
         }
         arr->push_back(new ExprNode(new LiteralNode('\0')));
         $$ = new ExprNode(arr);
-    }
+    } */
+    ;
+
+stringLiteral
+    : STRING_LITERAL { $$ = $1; }
+    | stringLiteral STRING_LITERAL { $$ = $1.substr(0, $1.size() - 1) + $2.substr(1); }
     ;
 
 expr
     : literal { $$ = new ExprNode($1); }
     | accessor { $$ = new ExprNode($1); }
     | fnCall { $$ = new ExprNode($1); }
+    | stringLiteral {
+        StaticData *data = drv.cs->addStaticData($1);
+        $$ = new ExprNode(data);
+    }
     | expr OP_PLUS    expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_MINUS   expr { $$ = new ExprNode($2, $1, $3); }
     | expr OP_STAR    expr { $$ = new ExprNode($2, $1, $3); }

@@ -8,6 +8,7 @@
 #include "builtins.hpp"
 
 class StackFrame;
+class StaticData;
 class CompileState;
 
 // Declarations
@@ -148,7 +149,7 @@ private:
 class ExprNode {
 public:
     enum ExprKind {
-        Literal, Accessor, FnCall, BinaryOp, UnaryOp, Array, Empty
+        Literal, Accessor, FnCall, BinaryOp, UnaryOp, Array, Static, Empty
     } kind;
 
     LiteralNode *literal;               // Literal
@@ -158,6 +159,7 @@ public:
     ExprNode *opr1, *opr2;              // BinaryOp
     ExprNode *opr;                      // UnaryOp
     std::vector<ExprNode *> *array;     // Array
+    StaticData *staticData;             // Static
     TypeNode *type;
 
     ExprNode(LiteralNode *literal);
@@ -166,6 +168,7 @@ public:
     ExprNode(BuiltinOperator binaryOperator, ExprNode *opr1, ExprNode *opr2);
     ExprNode(BuiltinOperator unaryOperator, ExprNode *opr);
     ExprNode(std::vector<ExprNode *> *array);
+    ExprNode(StaticData *staticData);
     ExprNode();
     bool containsFnCalls();
 };
@@ -197,6 +200,8 @@ public:
 std::ostream &operator<<(std::ostream &os, BuiltinType &type);
 std::ostream &operator<<(std::ostream &os, BuiltinOperator &op);
 std::ostream &operator<<(std::ostream &os, LiteralType &type);
+
+std::ostream &operator<<(std::ostream &os, StaticData &staticData);
 
 std::ostream &operator<<(std::ostream &os, FnDeclNode &node);
 std::ostream &operator<<(std::ostream &os, FnDefNode &node);
@@ -289,6 +294,24 @@ public:
     std::string emitLoadCaller();
 };
 
+class StaticData {
+public:
+    enum StaticDataKind {
+        String, None
+    } kind;
+    std::string string;  // String
+    unsigned long id;
+    TypeNode *ptrType;
+
+    StaticData(unsigned long id, std::string string);
+    StaticData();
+    std::string label();
+    void emit(CompileState &cs);
+
+private:
+    unsigned p2alignment();
+};
+
 class CompileState {
 public:
     std::ostream &os;
@@ -300,6 +323,11 @@ public:
     void pushFrame(FnDefNode *fnDef);
     StackFrame *getTopFrame();
     void popFrame();
+
+    // Static data
+    std::vector<StaticData *> staticData;
+    StaticData *addStaticData(std::string string);
+    StaticData *getStaticData(unsigned long id);
 
     // Keep track of which builtins to insert
     std::unordered_set<BuiltinFn> usedBuiltinFns;

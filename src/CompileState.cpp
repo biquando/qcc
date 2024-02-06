@@ -50,6 +50,16 @@ void CompileState::popFrame() {
     frames.pop_back();
 }
 
+StaticData *CompileState::addStaticData(std::string string) {
+    StaticData *dataPtr = new StaticData(staticData.size(), string);
+    staticData.push_back(dataPtr);
+    return staticData.back();
+}
+
+StaticData *CompileState::getStaticData(unsigned long id) {
+    return staticData[id];
+}
+
 TypeNode *CompileState::getVarType(std::string identifier) {
     if (varTypes->find(identifier) == varTypes->end()) {
         std::cerr << "ERROR: Couldn't find the type of " << identifier << '\n';

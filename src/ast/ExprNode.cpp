@@ -108,6 +108,11 @@ ExprNode::ExprNode(std::vector<ExprNode *> *array)
           array(array),
           type(new TypeNode(new TypeNode(BuiltinType::Void))) {}
 
+ExprNode::ExprNode(StaticData *staticData)
+        : kind(Static),
+          staticData(staticData),
+          type(staticData->ptrType) {}
+
 ExprNode::ExprNode()
         : kind(Empty),
           type(new TypeNode(BuiltinType::Void)) {}
@@ -149,6 +154,9 @@ std::ostream &operator<<(std::ostream &os, ExprNode &node) {
                 ios << *elem << '\n';
             }
             os << '}';
+            break;
+        case ExprNode::Static:
+            os << " (Static): " << *(node.staticData); // problem: need cs to get staticData
             break;
         case ExprNode::Empty:
             break;
