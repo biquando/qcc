@@ -130,8 +130,11 @@ std::string StatementNode::emit(StackFrame *sf) {
     }
 
     if (kind == StatementNode::Assignment && accessor->kind == AccessorNode::Identifier) {
-        StackFrame::Reservation var = sf->getVariable(accessor->identifier);
-        output += var.emitFromExprNode(sf, expr);
+        StackFrame::Reservation varRes = sf->getVariable(accessor->identifier);
+        StackFrame::Reservation valRes = sf->reserveExpr(varRes.type);
+        output += valRes.emitFromExprNode(sf, expr);
+        output += valRes.emitCopyTo(varRes);
+        sf->unreserveExpr();
         goto endStatement;
     }
 
